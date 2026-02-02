@@ -14,7 +14,7 @@ class CreateEmployeesTable extends Migration
     public function up()
     {
         Schema::create('employees', function (Blueprint $table) {
-            $table->bigIncrements('nip');
+            $table->string('nip')->primary();
             $table->string('name');
             $table->foreignId('user_id')->references('user_id')->on('users');
             $table->string('email')->unique();

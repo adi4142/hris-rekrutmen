@@ -13,7 +13,9 @@ class Employee extends Model
 {
     protected $table = 'employees';
     protected $primaryKey = 'nip';
+    protected $keyType = 'string';
     protected $fillable = [
+        'nip',
         'name',
         'user_id',
         'email',
@@ -39,6 +41,10 @@ class Employee extends Model
     }
 
     public function position(){
-        return $this->hasMany(Position::class, 'position_id');
+        return $this->belongsTo(Position::class, 'position_id');
+    }
+
+    public function attendances(){
+        return $this->hasMany(Attendance::class, 'employee_nip', 'nip');
     }
 }

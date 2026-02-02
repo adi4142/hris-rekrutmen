@@ -59,16 +59,14 @@
     <!-- Sidebar -->
     <div class="sidebar">
       <!-- Sidebar user panel (optional) -->
-      @auth
       <div class="user-panel mt-3 pb-3 mb-3 d-flex">
         <div class="image">
           <img src="{{ asset('AdminLTE/dist/img/user2-160x160.jpg') }}" class="img-circle elevation-2" alt="User Image">
         </div>
         <div class="info">
-          <a href="#" class="d-block">{{ Auth::user()->name }}</a>
+          <a href="#" class="d-block">{{ Auth::user()->name ?? 'Guest' }}</a>
         </div>
       </div>
-      @endauth
 
       <!-- Sidebar Menu -->
       <nav class="mt-2">
@@ -79,6 +77,27 @@
               <p>Dashboard</p>
             </a>
           </li>
+
+          <li class="nav-header">MANAJEMEN SDM</li>
+          <li class="nav-item">
+            <a href="{{ route('employee.index') }}" class="nav-link {{ request()->is('employee*') ? 'active' : '' }}">
+              <i class="nav-icon fas fa-users"></i>
+              <p>Karyawan</p>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{{ route('attendance.index') }}" class="nav-link {{ request()->is('attendance*') ? 'active' : '' }}">
+              <i class="nav-icon fas fa-calendar-check"></i>
+              <p>Absensi</p>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{{ route('payroll.index') }}" class="nav-link {{ request()->is('payroll*') ? 'active' : '' }}">
+              <i class="nav-icon fas fa-money-bill-wave"></i>
+              <p>Payroll</p>
+            </a>
+          </li>
+
           <li class="nav-header">REKRUTMEN</li>
           <li class="nav-item">
             <a href="{{ route('jobvacancie.index') }}" class="nav-link {{ request()->is('jobvacancie*') ? 'active' : '' }}">
@@ -96,12 +115,6 @@
             <a href="{{ route('selection.index') }}" class="nav-link {{ request()->is('selection*') ? 'active' : '' }}">
               <i class="nav-icon fas fa-tasks"></i>
               <p>Proses Seleksi</p>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="{{ route('selectionapplicant.index') }}" class="nav-link {{ request()->is('selectionapplicant*') ? 'active' : '' }}">
-              <i class="nav-icon fas fa-tasks"></i>
-              <p>Seleksi Pelamar</p>
             </a>
           </li>
 
@@ -124,18 +137,6 @@
               <p>Divisi</p>
             </a>
           </li>
-          <li class="nav-item">
-            <a href="{{ route('departement.index') }}" class="nav-link {{ request()->is('departement*') ? 'active' : '' }}">
-              <i class="nav-icon fas fa-building"></i>
-              <p>Departemen</p>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="{{ route('position.index') }}" class="nav-link {{ request()->is('position*') ? 'active' : '' }}">
-              <i class="nav-icon fas fa-id-card"></i>
-              <p>Jabatan</p>
-            </a>
-          </li>
         </ul>
       </nav>
       <!-- /.sidebar-menu -->
@@ -144,7 +145,7 @@
   </aside>
 
   <!-- Content Wrapper. Contains page content -->
-  <div class="content-wrapper text-sm">
+  <div class="content-wrapper">
     <!-- Content Header (Page header) -->
     <div class="content-header">
       <div class="container-fluid">

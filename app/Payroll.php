@@ -16,4 +16,8 @@ class Payroll extends Model
         'status',
     ];
 
+    public function details()
+    {
+        return $this->hasMany(PayrollDetail::class, 'payroll_id', 'payroll_id');
+    }
 }

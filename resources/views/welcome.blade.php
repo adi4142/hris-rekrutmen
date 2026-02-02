@@ -1,100 +1,91 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
+@extends('layouts.admin')
 
-        <title>Laravel</title>
+@section('title', 'Dashboard')
+@section('page_title', 'Dashboard Overview')
 
-        <!-- Fonts -->
-        <link href="https://fonts.googleapis.com/css?family=Nunito:200,600" rel="stylesheet">
+@section('content')
+<div class="row">
+    <div class="col-lg-3 col-6">
+        <div class="small-box bg-info">
+            <div class="inner">
+                <h3>150</h3>
+                <p>Total Karyawan</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <a href="{{ route('employee.index') }}" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+        </div>
+    </div>
+    <div class="col-lg-3 col-6">
+        <div class="small-box bg-success">
+            <div class="inner">
+                <h3>95<sup style="font-size: 20px">%</sup></h3>
+                <p>Kehadiran Hari Ini</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-calendar-check"></i>
+            </div>
+            <a href="{{ route('attendance.index') }}" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+        </div>
+    </div>
+    <div class="col-lg-3 col-6">
+        <div class="small-box bg-warning">
+            <div class="inner">
+                <h3>12</h3>
+                <p>Lowongan Aktif</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-briefcase"></i>
+            </div>
+            <a href="{{ route('jobvacancie.index') }}" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+        </div>
+    </div>
+    <div class="col-lg-3 col-6">
+        <div class="small-box bg-danger">
+            <div class="inner">
+                <h3>45</h3>
+                <p>Pelamar Baru</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-user-tie"></i>
+            </div>
+            <a href="{{ route('jobapplicant.index') }}" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+        </div>
+    </div>
+</div>
 
-        <!-- Styles -->
-        <style>
-            html, body {
-                background-color: #fff;
-                color: #636b6f;
-                font-family: 'Nunito', sans-serif;
-                font-weight: 200;
-                height: 100vh;
-                margin: 0;
-            }
-
-            .full-height {
-                height: 100vh;
-            }
-
-            .flex-center {
-                align-items: center;
-                display: flex;
-                justify-content: center;
-            }
-
-            .position-ref {
-                position: relative;
-            }
-
-            .top-right {
-                position: absolute;
-                right: 10px;
-                top: 18px;
-            }
-
-            .content {
-                text-align: center;
-            }
-
-            .title {
-                font-size: 84px;
-            }
-
-            .links > a {
-                color: #636b6f;
-                padding: 0 25px;
-                font-size: 13px;
-                font-weight: 600;
-                letter-spacing: .1rem;
-                text-decoration: none;
-                text-transform: uppercase;
-            }
-
-            .m-b-md {
-                margin-bottom: 30px;
-            }
-        </style>
-    </head>
-    <body>
-        <div class="flex-center position-ref full-height">
-            @if (Route::has('login'))
-                <div class="top-right links">
-                    @auth
-                        <a href="{{ url('/home') }}">Home</a>
-                    @else
-                        <a href="{{ route('login') }}">Login</a>
-
-                        @if (Route::has('register'))
-                            <a href="{{ route('register') }}">Register</a>
-                        @endif
-                    @endauth
+<div class="row">
+    <div class="col-md-8">
+        <div class="card card-primary card-outline">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-chart-line mr-1"></i> Statistik Kehadiran
+                </h3>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                   <i class="icon fas fa-info"></i> Selamat datang di Sistem HRIS! Anda dapat mengelola data SDM dengan mudah di sini.
                 </div>
-            @endif
-
-            <div class="content">
-                <div class="title m-b-md">
-                    Laravel
-                </div>
-
-                <div class="links">
-                    <a href="https://laravel.com/docs">Docs</a>
-                    <a href="https://laracasts.com">Laracasts</a>
-                    <a href="https://laravel-news.com">News</a>
-                    <a href="https://blog.laravel.com">Blog</a>
-                    <a href="https://nova.laravel.com">Nova</a>
-                    <a href="https://forge.laravel.com">Forge</a>
-                    <a href="https://vapor.laravel.com">Vapor</a>
-                    <a href="https://github.com/laravel/laravel">GitHub</a>
-                </div>
+                <p>Gunakan menu di sebelah kiri untuk menavigasi ke berbagai modul sistem.</p>
             </div>
         </div>
-    </body>
-</html>
+    </div>
+    <div class="col-md-4">
+        <div class="card card-secondary card-outline">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-history mr-1"></i> Aktivitas Terakhir
+                </h3>
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">Admin ditambahkan sebagai karyawan</li>
+                    <li class="list-group-item">Lowongan Software Engineer dibuka</li>
+                    <li class="list-group-item">5 Pelamar baru mendaftar hari ini</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection

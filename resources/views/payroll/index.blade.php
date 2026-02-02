@@ -1,40 +1,67 @@
-<h2>Penggajian</h2>
-<table border="1">
-    <thead>
-        <tr>
-            <th>Nomor</th>
-            <th>periode bulan</th>
-            <th>periode tahun</th>
-            <th>Status</th>
-            <th>
-                <a href="{{ route('payroll.create') }}">Tambah periode</a>
-            </th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach($payrolls as $v)
-        <tr>
-            <td>{{ $loop->iteration }}</td>
-            <td>{{ $v->period_month }}</td>
-            <td>{{ $v->period_year }}</td>
-            @php
-                $statusLabel = [
-                    'calculated' => 'Sudah Dihitung',
-                    'approved'   => 'Disetujui',
-                    'paid'       => 'Sudah Dibayar',
-                ];
-            @endphp
-            <td>{{ $statusLabel[$v->status] ?? '-' }}</td>
+@extends('layouts.app')
 
-            <td>
-                <form action="{{ route('payroll.destroy', $v->payroll_id) }}" method="POST" style="display:inline;">
-                    {{ csrf_field() }}
-                    @method('DELETE')
-                    <a href="{{ route('payroll.edit', $v->payroll_id) }}">Edit</a>
-                    <button type="submit" onclick="return confirm('Kamu serius?')">Hapus</button>
-                </form>
-            </td>
-        </tr>
-        @endforeach
-    </tbody>
-</table>
+@section('title', 'Payroll')
+@section('page_title', 'Manajemen Penggajian')
+
+@section('content')
+<div class="card card-primary card-outline">
+    <div class="card-header">
+        <h3 class="card-title">Daftar Periode Gaji</h3>
+        <div class="card-tools">
+            <a href="{{ route('payroll.create') }}" class="btn btn-primary btn-sm">
+                <i class="fas fa-plus"></i> Tambah Periode
+            </a>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="thead-light">
+                    <tr>
+                        <th>No</th>
+                        <th>Bulan</th>
+                        <th>Tahun</th>
+                        <th>Status</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($payrolls as $v)
+                    <tr>
+                        <td>{{ $loop->iteration }}</td>
+                        <td>{{ date("F", mktime(0, 0, 0, $v->period_month, 10)) }}</td>
+                        <td>{{ $v->period_year }}</td>
+                        <td>
+                            @if($v->status == 'calculated')
+                                <span class="badge badge-info">Dihitung</span>
+                            @elseif($v->status == 'approved')
+                                <span class="badge badge-warning">Disetujui</span>
+                            @elseif($v->status == 'paid')
+                                <span class="badge badge-success">Dibayar</span>
+                            @endif
+                        </td>
+                        <td>
+                            <div class="btn-group">
+                                <a href="{{ route('payroll.show', $v->payroll_id) }}" class="btn btn-info btn-sm" title="Lihat Detail">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{{ route('payroll.edit', $v->payroll_id) }}" class="btn btn-warning btn-sm" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <form action="{{ route('payroll.destroy', $v->payroll_id) }}" method="POST" style="display:inline;">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Hapus periode ini?')" title="Hapus">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+@endsection

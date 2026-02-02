@@ -1,3 +1,6 @@
+@extends('layouts.app')
+@section('content') 
+
 <h2>Daftar Departement</h2>
 <table border="1">
     <thead>
@@ -28,3 +31,5 @@
         @endforeach
     </tbody>
 </table>
+
+@endsection

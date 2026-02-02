@@ -1,3 +1,6 @@
+@extends('layouts.app')
+@section('content')
+
 <h2>Tambah Departement</h2>
 <form action="{{ route('departement.store') }}" method="POST">
     {{ csrf_field() }}
@@ -17,3 +20,5 @@
     <button type="submit">Simpan</button>
     <a href="{{ route('departement.index') }}">Kembali</a>
 </form>
+
+@endsection

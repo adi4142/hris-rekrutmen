@@ -59,7 +59,72 @@ class PayrollController extends Controller
      */
     public function show($id)
     {
-        //
+        $payroll = Payroll::with(['details.employee', 'details.components'])->findOrFail($id);
+        return view('payroll.show', compact('payroll'));
+    }
+
+    public function generate($id)
+    {
+        $payroll = Payroll::findOrFail($id);
+        $employees = \App\Employee::all();
+
+        foreach ($employees as $employee) {
+            $exists = \App\PayrollDetail::where('payroll_id', $id)->where('nip', $employee->nip)->first();
+            if (!$exists) {
+                \App\PayrollDetail::create([
+                    'payroll_id' => $id,
+                    'nip' => $employee->nip,
+                    'basic_salary' => 0, // Should come from master data if available
+                    'total_allowance' => 0,
+                    'total_deduction' => 0,
+                    'total_salary' => 0,
+                ]);
+            }
+        }
+
+        return redirect()->route('payroll.show', $id)->with('success', 'Data gaji karyawan berhasil digenerate.');
+    }
+
+    public function addComponent(Request $request, $detail_id)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'type' => 'required|in:allowance,deduction',
+            'amount' => 'required|numeric|min:0',
+        ]);
+
+        $detail = \App\PayrollDetail::findOrFail($detail_id);
+        
+        \App\PayrollComponent::create([
+            'payroll_detail_id' => $detail_id,
+            'name' => $request->name,
+            'type' => $request->type,
+            'amount' => $request->amount,
+        ]);
+
+        // Update totals in detail
+        if ($request->type == 'allowance') {
+            $detail->total_allowance += $request->amount;
+        } else {
+            $detail->total_deduction += $request->amount;
+        }
+        
+        $detail->total_salary = ($detail->basic_salary + $detail->total_allowance) - $detail->total_deduction;
+        $detail->save();
+
+        return back()->with('success', 'Komponen gaji berhasil ditambahkan.');
+    }
+
+    public function updateBasicSalary(Request $request, $detail_id)
+    {
+        $request->validate(['basic_salary' => 'required|numeric|min:0']);
+        
+        $detail = \App\PayrollDetail::findOrFail($detail_id);
+        $detail->basic_salary = $request->basic_salary;
+        $detail->total_salary = ($detail->basic_salary + $detail->total_allowance) - $detail->total_deduction;
+        $detail->save();
+
+        return back()->with('success', 'Gaji pokok berhasil diperbarui.');
     }
 
     /**

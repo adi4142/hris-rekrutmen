@@ -29,7 +29,11 @@ class EmployeeController extends Controller
      */
     public function create()
     {
-        return view('employee.create');
+        $user = User::all();
+        $departements = Departement::all();
+        $divisions = Division::all();
+        $positions = Position::all();
+        return view('employee.create', compact('user', 'departements', 'divisions', 'positions'));
     }
 
     /**
@@ -41,22 +45,34 @@ class EmployeeController extends Controller
     public function store(Request $request)
     {
         $this->validate($request,[
-            'nip'=>'required|string|max:100',
+            'nip'=>'required|string|max:25|unique:employees',
             'name'=>'required|string|max:100',
             'user_id'=>'required|exists:users,user_id',
-            'email'=>'required|unique:employees',
-            'password'=>'required|min:3',
-            'role'=>'required'
+            'email'=>'required|email|unique:employees,email',
+            'phone'=>'required|string|max:20',
+            'departement_id'=>'required|exists:departements,departement_id',
+            'position_id'=>'required|exists:positions,position_id',
+            'division_id'=>'required|exists:divisions,division_id',
+            'address'=>'required|string',
+            'date_of_birth'=>'required|date',
+            'gender'=>'required|in:Male,Female'
         ]);
 
-        User::create([
+        Employee::create([
+            'nip'=>$request->nip,
             'name'=>$request->name,
+            'user_id'=>$request->user_id,
             'email'=>$request->email,
-            'password'=>bcrypt($request->password),
-            'role'=>$request->role
+            'phone'=>$request->phone,
+            'departement_id'=>$request->departement_id,
+            'position_id'=>$request->position_id,
+            'division_id'=>$request->division_id,
+            'address'=>$request->address,
+            'date_of_birth'=>$request->date_of_birth,
+            'gender'=>$request->gender
         ]);
 
-        return redirect()->route('user.index');
+        return redirect()->route('employee.index')->with('success', 'Data Karyawan berhasil ditambahkan');
     }
 
     /**
@@ -76,9 +92,14 @@ class EmployeeController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function edit($id)
+    public function edit($nip)
     {
-        //
+        $employee = Employee::where('nip', $nip)->firstOrFail();
+        $user = User::all();
+        $departements = Departement::all();
+        $divisions = Division::all();
+        $positions = Position::all();
+        return view('employee.edit', compact('employee', 'user', 'departements', 'divisions', 'positions'));
     }
 
     /**
@@ -88,9 +109,37 @@ class EmployeeController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, $nip)
     {
-        //
+        $this->validate($request, [
+            'nip' => 'required|string|max:25|unique:employees,nip,' . $nip . ',nip',
+            'name' => 'required|string|max:100',
+            'user_id' => 'required|exists:users,user_id',
+            'email' => 'required|email|unique:employees,email,' . $nip . ',nip',
+            'phone' => 'required|string|max:20',
+            'departement_id' => 'required|exists:departements,departement_id',
+            'position_id' => 'required|exists:positions,position_id',
+            'division_id' => 'required|exists:divisions,division_id',
+            'address' => 'required|string',
+            'date_of_birth' => 'required|date',
+            'gender' => 'required|in:Male,Female'
+        ]);
+
+        Employee::where('nip', $nip)->update([
+            'nip' => $request->nip,
+            'name' => $request->name,
+            'user_id' => $request->user_id,
+            'email' => $request->email,
+            'phone' => $request->phone,
+            'departement_id' => $request->departement_id,
+            'position_id' => $request->position_id,
+            'division_id' => $request->division_id,
+            'address' => $request->address,
+            'date_of_birth' => $request->date_of_birth,
+            'gender' => $request->gender
+        ]);
+
+        return redirect()->route('employee.index')->with('success', 'Data Karyawan berhasil diupdate');
     }
 
     /**
@@ -99,8 +148,18 @@ class EmployeeController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy($nip)
     {
-        //
+        Employee::where('nip', $nip)->delete();
+        return redirect()->route('employee.index')->with('success', 'Data Karyawan berhasil dihapus');
+    }
+
+    public function getUserEmail($id)
+    {
+        $user = User::find($id);
+
+        return response()->json([
+            'email' => $user ? $user->email : ''
+        ]);
     }
 }
