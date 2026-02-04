@@ -16,6 +16,7 @@ use App\Http\Controllers\SelectionApplicantController;
 use App\Http\Controllers\JobApplicationController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\LoginController;
+use App\Http\Controllers\ApplicantDashboardController;
 use App\Http\Controllers\RegisterController;
 
 /*
@@ -33,6 +34,13 @@ Route::get('/', function () {
     return view('landing');
 });
 
+Route::get('/lowongan', function () {
+    $jobVacancies = \App\JobVacancie::with(['departement', 'position'])
+                    ->where('status', 'open')
+                    ->get();
+    return view('lowongan', compact('jobVacancies'));
+})->name('lowongan');
+
 // Authentication Routes
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login']);
@@ -44,8 +52,13 @@ Route::post('/register', [RegisterController::class, 'register']);
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', function () {
-        return view('welcome'); // Or your dashboard view
+        return view('dashboard'); // Or your dashboard view
     })->name('dashboard');
+
+    Route::middleware(['auth', 'role:tamu'])->group(function () {
+        Route::get('/applicant/dashboard', [ApplicantDashboardController::class, 'index'])
+            ->name('applicant.dashboard');
+    });
 
     Route::get('/role', [RoleController::class, 'index'])->name('role.index');
     Route::get('/role/create', [RoleController::class, 'create'])->name('role.create');

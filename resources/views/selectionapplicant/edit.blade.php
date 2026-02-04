@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', 'Edit Selection Applicant')
 @section('page_title', 'Selection Applicant')
@@ -53,9 +53,9 @@
             <div class="form-group">
                 <label for="status">Status</label>
                 <select name="status" id="status" class="form-control @error('status') is-invalid @enderror">
-                    <option value="pending" {{ (old('status') ?? $selectionApplicant->status) == 'pending' ? 'selected' : '' }}>Pending</option>
-                    <option value="approved" {{ (old('status') ?? $selectionApplicant->status) == 'approved' ? 'selected' : '' }}>Approved</option>
-                    <option value="rejected" {{ (old('status') ?? $selectionApplicant->status) == 'rejected' ? 'selected' : '' }}>Rejected</option>
+                    <option value="">-- Select Status --</option>
+                    <option value="passed" {{ (old('status') ?? $selectionApplicant->status) == 'passed' ? 'selected' : '' }}>Lulus</option>
+                    <option value="failed" {{ (old('status') ?? $selectionApplicant->status) == 'failed' ? 'selected' : '' }}>Gagal</option>
                 </select>
                 @error('status')
                     <span class="invalid-feedback">{{ $message }}</span>

@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 @section('content')
 
 <div class="card">
@@ -17,7 +17,6 @@
                     <th>No</th>
                     <th>Name</th>
                     <th>Description</th>
-                    <th>Order</th>
                     <th>Aksi</th>
                 </tr>
             </thead>
@@ -27,7 +26,6 @@
                     <td>{{ $loop->iteration }}</td>
                     <td>{{ $j->name }}</td>
                     <td>{{ $j->description }}</td>
-                    <td>{{ $j->order }}</td>
                     <td>
                         <div class="btn-group" role="group">
                             <a href="{{ route('selection.edit', $j->selection_id) }}" class="btn btn-warning btn-sm">

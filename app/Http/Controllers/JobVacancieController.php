@@ -41,7 +41,6 @@ class JobVacancieController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'title' => 'required',
             'departement_id' => 'required|exists:departements,departement_id',
             'position_id' => 'required|exists:positions,position_id',
             'description' => 'required',
@@ -49,8 +48,10 @@ class JobVacancieController extends Controller
             'status' => 'required|in:open,closed',
         ]);
 
+        $position = Position::findOrFail($request->position_id);
+
         JobVacancie::create([
-            'title' => $request->title,
+            'title' => $position->name,
             'departement_id' => $request->departement_id,
             'position_id' => $request->position_id,
             'description' => $request->description,
@@ -95,7 +96,6 @@ class JobVacancieController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-            'title' => 'required',
             'departement_id'=>'required|exists:departements,departement_id',
             'position_id' => 'required|exists:positions,position_id',
             'description' => 'required',
@@ -104,8 +104,10 @@ class JobVacancieController extends Controller
         ]);
 
         $editJobVacancie = JobVacancie::findOrFail($id);
+        $position = Position::findOrFail($request->position_id);
+        
         $editJobVacancie->update([
-            'title' => $request->title,
+            'title' => $position->name,
             'departement_id' => $request->departement_id,
             'position_id' => $request->position_id,
             'description' => $request->description,

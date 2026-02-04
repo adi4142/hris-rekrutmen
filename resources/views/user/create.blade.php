@@ -1,4 +1,11 @@
-<h2>Tambah Pengguna</h2>
+@extends('layouts.admin')
+@section('content')
+
+<div class="card card-primary card-outline">
+    <div class="card-header">
+        <h3 class="card-title">Tambah Pengguna</h3>
+    </div>
+    <div class="card-body">
 <form action="{{ route('user.store') }}" method="POST">
     {{ csrf_field() }}
     <div>
@@ -40,3 +47,6 @@
     <button type="submit">Simpan</button>
     <a href="{{ route('user.index') }}">Kembali</a>
 </form>
+    </div>
+</div>
+@endsection

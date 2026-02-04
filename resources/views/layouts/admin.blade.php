@@ -77,32 +77,17 @@
               <p>Dashboard</p>
             </a>
           </li>
-
-          <li class="nav-header">MANAJEMEN SDM</li>
-          <li class="nav-item">
-            <a href="{{ route('employee.index') }}" class="nav-link {{ request()->is('employee*') ? 'active' : '' }}">
-              <i class="nav-icon fas fa-users"></i>
-              <p>Karyawan</p>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="{{ route('attendance.index') }}" class="nav-link {{ request()->is('attendance*') ? 'active' : '' }}">
-              <i class="nav-icon fas fa-calendar-check"></i>
-              <p>Absensi</p>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="{{ route('payroll.index') }}" class="nav-link {{ request()->is('payroll*') ? 'active' : '' }}">
-              <i class="nav-icon fas fa-money-bill-wave"></i>
-              <p>Payroll</p>
-            </a>
-          </li>
-
           <li class="nav-header">REKRUTMEN</li>
           <li class="nav-item">
             <a href="{{ route('jobvacancie.index') }}" class="nav-link {{ request()->is('jobvacancie*') ? 'active' : '' }}">
               <i class="nav-icon fas fa-briefcase"></i>
               <p>Lowongan Kerja</p>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{{ route('jobapplication.index') }}" class="nav-link {{ request()->is('jobapplication*') ? 'active' : '' }}">
+              <i class="nav-icon fas fa-file-alt"></i>
+              <p>Lamaran Masuk</p>
             </a>
           </li>
           <li class="nav-item">
@@ -115,6 +100,13 @@
             <a href="{{ route('selection.index') }}" class="nav-link {{ request()->is('selection*') ? 'active' : '' }}">
               <i class="nav-icon fas fa-tasks"></i>
               <p>Proses Seleksi</p>
+            </a>
+          </li>
+          
+          <li class="nav-item">
+            <a href="{{ route('selectionapplicant.index') }}" class="nav-link {{ request()->is('selectionapplicant*') ? 'active' : '' }}">
+              <i class="nav-icon fas fa-user-check"></i>
+              <p>Seleksi Pelamar</p>
             </a>
           </li>
 
@@ -137,6 +129,19 @@
               <p>Divisi</p>
             </a>
           </li>
+          <li class="nav-item">
+            <a href="{{ route('departement.index') }}" class="nav-link {{ request()->is('departement*') ? 'active' : '' }}">
+              <i class="nav-icon fas fa-layer-group"></i>
+              <p>Departemen</p>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{{ route('position.index') }}" class="nav-link {{ request()->is('position*') ? 'active' : '' }}">
+              <i class="nav-icon fas fa-layer-group"></i>
+              <p>Jabatan</p>
+            </a>
+          </li>
+          
         </ul>
       </nav>
       <!-- /.sidebar-menu -->

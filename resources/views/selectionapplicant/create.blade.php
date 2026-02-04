@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', 'Add Selection Applicant')
 @section('page_title', 'Selection Applicant')
@@ -12,18 +12,23 @@
         @csrf
         <div class="card-body">
             <div class="form-group">
-                <label for="application_id">Job Applicant</label>
-                <select name="application_id" id="application_id" class="form-control @error('application_id') is-invalid @enderror">
-                    <option value="">-- Select Applicant --</option>
-                    @foreach($jobApplications as $application)
-                        <option value="{{ $application->application_id }}" {{ old('application_id') == $application->application_id ? 'selected' : '' }}>
-                            {{ $application->jobApplicant->name }} - {{ $application->jobVacancie->title }}
-                        </option>
-                    @endforeach
-                </select>
-                @error('application_id')
-                    <span class="invalid-feedback">{{ $message }}</span>
-                @enderror
+                <label for="application_id">Applicant Name</label>
+                @if(isset($selectedApplication))
+                    <input type="text" class="form-control" value="{{ $selectedApplication->jobApplicant->name }} - {{ $selectedApplication->jobVacancie->title }}" disabled>
+                    <input type="hidden" name="application_id" value="{{ $selectedApplication->application_id }}">
+                @else
+                    <select name="application_id" id="application_id" class="form-control @error('application_id') is-invalid @enderror">
+                        <option value="">-- Select Applicant --</option>
+                        @foreach($jobApplications as $app)
+                            <option value="{{ $app->application_id }}" {{ old('application_id') == $app->application_id ? 'selected' : '' }}>
+                                {{ $app->jobApplicant->name }} - {{ $app->jobVacancie->title }}
+                            </option>
+                        @endforeach
+                    </select>
+                     @error('application_id')
+                        <span class="invalid-feedback">{{ $message }}</span>
+                    @enderror
+                @endif
             </div>
 
             <div class="form-group">
@@ -52,9 +57,9 @@
             <div class="form-group">
                 <label for="status">Status</label>
                 <select name="status" id="status" class="form-control @error('status') is-invalid @enderror">
-                    <option value="pending" {{ old('status') == 'pending' ? 'selected' : '' }}>Pending</option>
-                    <option value="approved" {{ old('status') == 'approved' ? 'selected' : '' }}>Approved</option>
-                    <option value="rejected" {{ old('status') == 'rejected' ? 'selected' : '' }}>Rejected</option>
+                    <option value="">-- Select Status --</option>
+                    <option value="passed" {{ old('status') == 'passed' ? 'selected' : '' }}>Passed</option>
+                    <option value="failed" {{ old('status') == 'failed' ? 'selected' : '' }}>Failed</option>
                 </select>
                 @error('status')
                     <span class="invalid-feedback">{{ $message }}</span>

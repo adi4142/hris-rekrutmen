@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', 'Job Applicant')
 @section('page_title', 'Manajemen Pendaftar')
@@ -7,11 +7,6 @@
 <div class="card card-primary card-outline">
     <div class="card-header">
         <h3 class="card-title">Daftar Pendaftar</h3>
-        <div class="card-tools">
-            <a href="{{ route('jobapplicant.create') }}" class="btn btn-primary btn-sm">
-                <i class="fas fa-plus"></i> Tambah Pendaftar
-            </a>
-        </div>
     </div>
     <div class="card-body">
         <div class="table-responsive">

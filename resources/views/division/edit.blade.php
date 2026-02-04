@@ -1,17 +1,23 @@
-<h2>Edit Divisi</h2>
+@extends('layouts.admin')
+@section('content')
+
+<div class="card card-primary card-outline">
+    <div class="card-header">
+        <h3 class="card-title">Edit Divisi</h3>
+    </div>
+    <div class="card-body">
             <form action="{{route('division.update', $editdivision->division_id)}}" method="POST">
-                {{csrf_field()}}
+                @csrf
                 @method('PUT')
-                <div>
+                <div class="form-group">
                     <label for="name">Nama : </label>
-                    <br>
-                    <input type="text" name="name" value="{{$editdivision->name}}"required>
-                    <br>
+                    <input type="text" name="name" value="{{$editdivision->name}}"required class="form-control">
                     <label for="description">Deskripsi : </label>
-                    <br>
-                    <textarea name="description">{{$editdivision->description}}</textarea>
-                    <br>
-                        <button type="submit" class="btn btn-primary">Ganti</button>
-                        <a href="{{route('division.index')}}" class="btn btn-danger">Kembali</a>
+                    <textarea name="description" class="form-control">{{$editdivision->description}}</textarea>
+                    <button type="submit" class="btn btn-primary">Ganti</button>
+                    <a href="{{route('division.index')}}" class="btn btn-danger">Kembali</a>
                 </div>
             </form>
+    </div>
+</div>
+@endsection

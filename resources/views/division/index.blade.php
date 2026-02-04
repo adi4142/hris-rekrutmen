@@ -1,13 +1,21 @@
-<h2>Daftar Divisi</h2>
-<table border="1">
+@extends('layouts.admin')
+@section('content')
+
+<div class="card card-primary card-outline">
+    <div class="card-header">
+        <h3 class="card-title">Daftar Divisi</h3>
+        <div class="card-tools">
+            <a href="{{ route('division.create') }}" class="btn btn-success">Tambah Divisi</a>
+        </div>
+    </div>
+    <div class="card-body">
+<table class="table table-bordered">
     <thead>
         <tr>
             <th>Nomor</th>
             <th>Nama Divisi</th>
             <th>Deskripsi</th>
-            <th>
-                <a href="{{ route('division.create') }}">Tambah Divisi</a>
-            </th>
+            <th>Aksi</th>
         </tr>
     </thead>
     <tbody>
@@ -20,11 +28,14 @@
                 <form action="{{ route('division.destroy', $v->division_id) }}" method="POST" style="display:inline;">
                     {{ csrf_field() }}
                     @method('DELETE')
-                    <a href="{{ route('division.edit', $v->division_id) }}">Edit</a>
-                    <button type="submit" onclick="return confirm('Kamu serius?')">Hapus</button>
+                    <a href="{{ route('division.edit', $v->division_id) }}" class="btn btn-warning">Edit</a>
+                    <button type="submit" onclick="return confirm('Kamu serius?')" class="btn btn-danger">Hapus</button>
                 </form>
             </td>
         </tr>
         @endforeach
     </tbody>
 </table>
+</div>
+</div>
+@endsection

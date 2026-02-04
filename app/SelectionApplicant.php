@@ -9,7 +9,7 @@ use App\Selection;
 class SelectionApplicant extends Model
 {
     protected $table = 'selection_applicants';
-    protected $primaryKey = 'id';
+    protected $primaryKey = 'selection_applicant_id';
     protected $fillable = [
         'selection_id',
         'application_id',

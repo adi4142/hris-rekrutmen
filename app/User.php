@@ -6,6 +6,7 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use App\Role;
+use App\JobApplicant;   
 
 class User extends Authenticatable
 {
@@ -21,6 +22,16 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
     ];
+
+    public function applicant()
+    {
+        return $this->hasOne(JobApplicant::class, 'user_id', 'user_id');
+    }
+
+    public function tamu()
+    {
+        return $this->hasOne(JobApplicant::class, 'user_id', 'user_id');
+    }
 
     public function role()
     {

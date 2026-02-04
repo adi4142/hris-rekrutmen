@@ -25,10 +25,11 @@ class JobAplicantController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function create()
+    public function create(Request $request)
     {
         $jobVacancies = JobVacancie::all();
-        return view('jobapplicant.create', compact('jobVacancies'));
+        $selectedVacancyId = $request->query('vacancies_id');
+        return view('jobapplicant.create', compact('jobVacancies', 'selectedVacancyId'));
     }
 
     /**
@@ -57,6 +58,7 @@ class JobAplicantController extends Controller
         }
 
         $jobApplicant = JobApplicant::create([
+            'user_id' => auth()->id(),
             'name' => $request->name,
             'email' => $request->email,
             'phone' => $request->phone,
@@ -72,6 +74,10 @@ class JobAplicantController extends Controller
             'job_applicant_id' => $jobApplicant->job_applicant_id,
             'status' => 'pending',
         ]);
+
+        if (auth()->check() && auth()->user()->role && strtolower(auth()->user()->role->name) == 'tamu') {
+            return redirect()->route('applicant.dashboard')->with('success', 'Lamaran berhasil dikirim!');
+        }
 
         return redirect()->route('jobapplicant.index');
     }

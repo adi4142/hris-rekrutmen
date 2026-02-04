@@ -289,11 +289,11 @@
         <ul class="nav-links">
             <li><a href="#features">Fitur</a></li>
             <li><a href="#about">Tentang</a></li>
-            <li><a href="#contact">Kontak</a></li>
+            <li><a href="{{ route('lowongan') }}">Lowongan</a></li>
         </ul>
         <div class="btn-auth">
             @auth
-                <a href="{{ route('dashboard') }}" class="btn btn-primary">Dashboard</a>
+                <a href="{{ route('applicant.dashboard') }}" class="btn btn-primary">Dashboard</a>
             @else
                 <a href="{{ route('login') }}" class="btn btn-outline">Login</a>
                 <a href="{{ route('register') }}" class="btn btn-primary">Daftar</a>
@@ -307,7 +307,7 @@
             <p>Sistem Informasi Sumber Daya Manusia (HRIS) yang komprehensif untuk membantu perusahaan Anda mengelola rekrutmen dalam satu platform terpadu.</p>
             <div class="btn-auth">
                 <a href="{{ route('jobapplicant.create') }}" class="btn btn-primary">lamar sekarang</a>
-                <a href="#features" class="btn btn-outline">lowongan Pekerjaan</a>
+                <a href="{{ route('lowongan') }}" class="btn btn-outline">Lowongan Pekerjaan</a>
             </div>
         </div>
         <div class="hero-image">

@@ -17,9 +17,8 @@ class CreateJobApplicationsTable extends Migration
             $table->bigIncrements('application_id');
             $table->foreignId('vacancies_id')->references('vacancies_id')->on('job_vacancies');
             $table->foreignId('job_applicant_id')->references('job_applicant_id')->on('job_applicants');
-            $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
+            $table->enum('status', ['applied', 'process', 'rejected', 'accepted', 'pending', 'approved'])->default('applied');
             $table->timestamps();
-
         });
     }
 

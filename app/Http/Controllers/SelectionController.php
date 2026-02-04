@@ -38,14 +38,12 @@ class SelectionController extends Controller
     {
         $request->validate([
             'name' => 'required',
-            'description' => 'required',
-            'order' => 'required',
+            'description' => 'nullable',
         ]);
 
         Selection::create([
             'name' => $request->name,
             'description' => $request->description,
-            'order' => $request->order,
         ]);
 
         return redirect()->route('selection.index');
@@ -85,15 +83,13 @@ class SelectionController extends Controller
     {
         $request->validate([
             'name' => 'required',
-            'description' => 'required',
-            'order' => 'required',
+            'description' => 'nullable',
         ]);
 
         $updateselection = Selection::findOrFail($id);
         $updateselection->update([
             'name' => $request->name,
             'description' => $request->description,
-            'order' => $request->order,
         ]);
 
         return redirect()->route('selection.index');

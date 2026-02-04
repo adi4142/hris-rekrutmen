@@ -15,7 +15,7 @@ class JobApplicationController extends Controller
      */
     public function index()
     {
-        $jobapplications = JobApplication::with(['jobApplicant','jobVacancie'])->get();
+        $jobapplications = JobApplication::with(['jobApplicant', 'jobVacancie.departement', 'jobVacancie.position'])->get();
         return view('jobapplication.index', compact('jobapplications'));
     }
 
@@ -72,15 +72,15 @@ class JobApplicationController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-        'status' => 'required|in:pending,approved,rejected'
-    ]);
+            'status' => 'required|in:applied,process,rejected,accepted,pending,approved'
+        ]);
 
-    $jobapplication = JobApplication::findOrFail($id);
-    $jobapplication->update([
-        'status' => $request->status
-    ]);
+        $jobapplication = JobApplication::findOrFail($id);
+        $jobapplication->update([
+            'status' => $request->status
+        ]);
 
-    return redirect()->back()->with('success', 'Status berhasil diupdate');
+        return redirect()->back()->with('success', 'Status berhasil diupdate');
 
     }
 

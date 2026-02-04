@@ -74,66 +74,9 @@
       <nav class="mt-2">
         <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
           <li class="nav-item">
-            <a href="{{ route('dashboard') }}" class="nav-link {{ request()->is('dashboard') ? 'active' : '' }}">
+            <a href="{{ route('applicant.dashboard') }}" class="nav-link {{ request()->is('applicant.dashboard') ? 'active' : '' }}">
               <i class="nav-icon fas fa-tachometer-alt"></i>
               <p>Dashboard</p>
-            </a>
-          </li>
-          <li class="nav-header">REKRUTMEN</li>
-          <li class="nav-item">
-            <a href="{{ route('jobvacancie.index') }}" class="nav-link {{ request()->is('jobvacancie*') ? 'active' : '' }}">
-              <i class="nav-icon fas fa-briefcase"></i>
-              <p>Lowongan Kerja</p>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="{{ route('jobapplicant.index') }}" class="nav-link {{ request()->is('jobapplicant*') ? 'active' : '' }}">
-              <i class="nav-icon fas fa-user-tie"></i>
-              <p>Pelamar</p>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="{{ route('selection.index') }}" class="nav-link {{ request()->is('selection*') ? 'active' : '' }}">
-              <i class="nav-icon fas fa-tasks"></i>
-              <p>Proses Seleksi</p>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="{{ route('selectionapplicant.index') }}" class="nav-link {{ request()->is('selectionapplicant*') ? 'active' : '' }}">
-              <i class="nav-icon fas fa-tasks"></i>
-              <p>Seleksi Pelamar</p>
-            </a>
-          </li>
-
-          <li class="nav-header">PENGATURAN</li>
-          <li class="nav-item">
-            <a href="{{ route('user.index') }}" class="nav-link {{ request()->is('user*') ? 'active' : '' }}">
-              <i class="nav-icon fas fa-user-cog"></i>
-              <p>User Management</p>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="{{ route('role.index') }}" class="nav-link {{ request()->is('role*') ? 'active' : '' }}">
-              <i class="nav-icon fas fa-user-tag"></i>
-              <p>Roles</p>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="{{ route('division.index') }}" class="nav-link {{ request()->is('division*') ? 'active' : '' }}">
-              <i class="nav-icon fas fa-layer-group"></i>
-              <p>Divisi</p>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="{{ route('departement.index') }}" class="nav-link {{ request()->is('departement*') ? 'active' : '' }}">
-              <i class="nav-icon fas fa-building"></i>
-              <p>Departemen</p>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="{{ route('position.index') }}" class="nav-link {{ request()->is('position*') ? 'active' : '' }}">
-              <i class="nav-icon fas fa-id-card"></i>
-              <p>Jabatan</p>
             </a>
           </li>
         </ul>

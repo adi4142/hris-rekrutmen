@@ -16,8 +16,13 @@ class SelectionApplicantController extends Controller
      */
     public function index()
     {
-        $selectionApplicants = SelectionApplicant::all();
-        return view('selectionapplicant.index', compact('selectionApplicants'));
+        // Ambil data lamaran yang statusnya 'process' atau 'approved' (siap diseleksi)
+        $jobApplications = JobApplication::with(['jobApplicant', 'jobVacancie', 'selectionApplicant.selection'])
+                            ->whereIn('status', ['approved', 'process', 'accepted'])
+                            ->orderBy('created_at', 'desc')
+                            ->get();
+                            
+        return view('selectionapplicant.index', compact('jobApplications'));
     }
 
     /**
@@ -25,11 +30,18 @@ class SelectionApplicantController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function create()
+    public function create(Request $request)
     {
-        $jobApplications = JobApplication::all();
+        $application_id = $request->query('application_id');
+        $selectedApplication = null;
+        
+        if($application_id){
+            $selectedApplication = JobApplication::find($application_id);
+        }
+
+        $jobApplications = JobApplication::whereIn('status', ['approved', 'process', 'accepted'])->get();
         $selections = Selection::all();
-        return view('selectionapplicant.create', compact('jobApplications', 'selections'));
+        return view('selectionapplicant.create', compact('jobApplications', 'selections', 'selectedApplication'));
     }
 
     /**
@@ -43,20 +55,20 @@ class SelectionApplicantController extends Controller
         $request->validate([
             'selection_id' => 'required',
             'application_id' => 'required',
-            'score' => 'required',
-            'notes' => 'required',
-            'status' => 'required|in:pending,approved,rejected',
+            'score' => 'nullable|numeric',
+            'notes' => 'nullable|string',
+            'status' => 'required|in:passed,failed,pending',
         ]);
 
         SelectionApplicant::create([
             'selection_id' => $request->selection_id,
             'application_id' => $request->application_id,
-            'score' => $request->score,
-            'notes' => $request->notes,
+            'score' => $request->score ?? 0,
+            'notes' => $request->notes ?? '-',
             'status' => $request->status,
         ]);
 
-        return redirect()->route('selectionapplicant.index');
+        return redirect()->route('selectionapplicant.index')->with('success', 'Tahapan seleksi berhasil ditambahkan');
     }
 
     /**
@@ -98,7 +110,7 @@ class SelectionApplicantController extends Controller
             'application_id' => 'required',
             'score' => 'required',
             'notes' => 'required',
-            'status' => 'required|in:pending,approved,rejected',
+            'status' => 'required|in:passed,failed',
         ]);
 
         $selectionApplicant = SelectionApplicant::findOrFail($id);

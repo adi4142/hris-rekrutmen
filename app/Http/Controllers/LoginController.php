@@ -22,7 +22,21 @@ class LoginController extends Controller
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
 
-            return redirect()->intended(route('employee.index'));
+            $user = Auth::user();
+
+            $user = Auth::user();
+            // Check if user has role and get the role name
+            $role = $user->role ? strtolower($user->role->name) : '';
+
+            if ($role === 'admin' || $role === 'hrd') {
+                return redirect()->intended(route('dashboard'));
+            } elseif ($role === 'karyawan') {
+                return redirect()->route('attendance.index');
+            } elseif ($role === 'tamu') {
+                return redirect()->route('applicant.dashboard');
+            }
+
+            return redirect()->intended(route('dashboard'));
         }
 
         return back()->withErrors([
@@ -37,6 +51,6 @@ class LoginController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('/');
+        return redirect('/login');
     }
 }
