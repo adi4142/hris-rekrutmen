@@ -30,4 +30,9 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'gemini' => [
+        'url' => env('GEMINI_API_URL'),
+        'key' => env('GEMINI_API_KEY'),
+    ],
+
 ];

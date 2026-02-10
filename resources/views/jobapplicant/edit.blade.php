@@ -1,79 +1,107 @@
 @extends('layouts.admin')
 
+@section('title', 'Edit Job Applicant')
+@section('page_title', 'Edit Data Pendaftar')
+
 @section('content')
 <div class="row">
-    <div class="col-12">
-        <div class="card">
+    <div class="col-md-12">
+        <div class="card card-primary card-outline">
             <div class="card-header">
-                <h3 class="card-title">Edit Job Applicant</h3>
+                <h3 class="card-title">Edit Data: {{ $editjobApplicant->name }}</h3>
             </div>
-            <div class="card-body">
-                <form action="{{ route('jobapplicant.update', $editjobApplicant->job_applicant_id) }}" method="POST" enctype="multipart/form-data">
-                    {{ csrf_field() }}
-                    @method('PUT')
-                    <div>
-                        <label for="name">Nama :</label>
-                        <br>
-                        <input type="text" name="name" value="{{ $editjobApplicant->name }}">
-                        @if ($errors->has('name'))
-                        <span class="text-danger">{{ $errors->first('name') }}</span>
-                        @endif
+            <form action="{{ route('jobapplicant.update', $editjobApplicant->job_applicant_id) }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                @method('PUT')
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="name">Nama Lengkap</label>
+                                <input type="text" name="name" class="form-control" value="{{ $editjobApplicant->name }}">
+                                @error('name') <span class="text-danger">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="email">Email</label>
+                                <input type="email" name="email" class="form-control" value="{{ $editjobApplicant->email }}">
+                                @error('email') <span class="text-danger">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="phone">Nomor HP</label>
+                                <input type="text" name="phone" class="form-control" value="{{ $editjobApplicant->phone }}">
+                                @error('phone') <span class="text-danger">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="gender">Jenis Kelamin</label>
+                                <select name="gender" class="form-control">
+                                    <option value="male" {{ $editjobApplicant->gender == 'male' ? 'selected' : '' }}>Laki-laki</option>
+                                    <option value="female" {{ $editjobApplicant->gender == 'female' ? 'selected' : '' }}>Perempuan</option>
+                                </select>
+                                @error('gender') <span class="text-danger">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="date_of_birth">Tanggal Lahir</label>
+                                <input type="date" name="date_of_birth" class="form-control" value="{{ $editjobApplicant->date_of_birth }}">
+                                @error('date_of_birth') <span class="text-danger">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label for="address">Alamat</label>
+                                <textarea name="address" class="form-control" rows="2">{{ $editjobApplicant->address }}</textarea>
+                                @error('address') <span class="text-danger">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <label for="email">Email :</label>
-                        <br>
-                        <input type="email" name="email" value="{{ $editjobApplicant->email }}">
-                        @if ($errors->has('email'))
-                        <span class="text-danger">{{ $errors->first('email') }}</span>
-                        @endif
+
+                    <h5 class="mt-4 border-bottom pb-2">Dokumen Pendaftar</h5>
+                    <div class="row">
+                        @php
+                            $docs = [
+                                'cv_file' => 'CV / Resume',
+                                'cover_letter' => 'Surat Lamaran',
+                                'portfolio' => 'Portofolio',
+                                'last_diploma' => 'Ijazah Terakhir',
+                                'transcript' => 'Transkrip Nilai',
+                                'supporting_certificates' => 'Sertifikat',
+                                'work_experience' => 'Surat Pengalaman Kerja'
+                            ];
+                        @endphp
+
+                        @foreach($docs as $field => $label)
+                        <div class="col-md-6 mt-3">
+                            <div class="form-group">
+                                <label>{{ $label }}</label>
+                                <input type="file" name="{{ $field }}" class="form-control-file">
+                                @if($editjobApplicant->$field)
+                                    <div class="mt-1">
+                                        <a href="{{ asset('storage/' . $editjobApplicant->$field) }}" target="_blank" class="btn btn-xs btn-info">
+                                            <i class="fas fa-eye"></i> Lihat File
+                                        </a>
+                                    </div>
+                                @else
+                                    <small class="text-muted">Belum ada file.</small>
+                                @endif
+                                @error($field) <span class="text-danger">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+                        @endforeach
                     </div>
-                    <div>
-                        <label for="phone">Phone :</label>
-                        <br>
-                        <input type="number" name="phone" value="{{ $editjobApplicant->phone }}">
-                        @if ($errors->has('phone'))
-                        <span class="text-danger">{{ $errors->first('phone') }}</span>
-                        @endif
-                    </div>
-                    <div>
-                        <label for="address">Address :</label>
-                        <br>
-                        <input type="text" name="address" value="{{ $editjobApplicant->address }}">
-                        @if ($errors->has('address'))
-                        <span class="text-danger">{{ $errors->first('address') }}</span>
-                        @endif
-                    </div>
-                    <div>
-                        <label for="date_of_birth">Date of Birth :</label>
-                        <br>
-                        <input type="date" name="date_of_birth" value="{{ $editjobApplicant->date_of_birth }}">
-                        @if ($errors->has('date_of_birth'))
-                        <span class="text-danger">{{ $errors->first('date_of_birth') }}</span>
-                        @endif
-                    </div>
-                    <div>
-                        <label for="gender">Gender :</label>
-                        <br>
-                        <select name="gender" class="form-control">
-                            <option value="">--Pilih gender--</option>
-                            <option value="male" {{ $editjobApplicant->gender == 'male' ? 'selected' : '' }}>Male</option>
-                            <option value="female" {{ $editjobApplicant->gender == 'female' ? 'selected' : '' }}>Female</option>
-                        </select>
-                        @if ($errors->has('gender'))
-                        <span class="text-danger">{{ $errors->first('gender') }}</span>
-                        @endif
-                    </div>
-                    <div>
-                        <label for="cv">CV :</label>
-                        <br>
-                        <input type="file" name="cv_file">
-                        @if ($editjobApplicant->cv_file)
-                        <p>File sekarang: <a href="{{ asset('storage/' . $editjobApplicant->cv_file) }}" target="_blank">Lihat CV</a></p>
-                        @endif
-                        @if ($errors->has('cv_file'))
-                        <span class="text-danger">{{ $errors->first('cv_file') }}</span>
-                        @endif
-                    </div>
-                    <button type="submit">Simpan</button>
-                    <a href="{{ route('jobapplicant.index') }}">Kembali</a>
-                </form>
+                </div>
+                <div class="card-footer">
+                    <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+                    <a href="{{ route('jobapplicant.index') }}" class="btn btn-default">Kembali</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endsection

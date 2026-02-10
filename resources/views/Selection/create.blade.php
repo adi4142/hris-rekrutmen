@@ -18,7 +18,7 @@
                         </div>
                         <div class="col-md-6 form-group">
                             <label for="description">Description</label>
-                            <input type="text" name="description" class="form-control @error('description') is-invalid @enderror" value="{{ old('description') }}" required>
+                            <input type="text" name="description" class="form-control @error('description') is-invalid @enderror" value="{{ old('description') }}" >
                             @error('description') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
                     </div>

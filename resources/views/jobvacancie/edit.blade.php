@@ -1,16 +1,17 @@
 @extends('layouts.admin')
 
 @section('content')
-<h2>Edit Job Vacancie</h2>
+<div class="card card-primary card-outline">
+    <div class="card-header">
+        <h3 class="card-title">Edit Job Vacancie</h3>
+    </div>
+    <div class="card-body">
 <form action="{{ route('jobvacancie.update', $editJobVacancie->vacancies_id) }}" method="POST">
     {{ csrf_field() }}
     @method('PUT')
     <div class="row">
         <div class="col-12">
             <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">Edit Job Vacancie</h3>
-                </div>
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-6 form-group">

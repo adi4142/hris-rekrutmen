@@ -60,6 +60,8 @@
                     <option value="">-- Select Status --</option>
                     <option value="passed" {{ old('status') == 'passed' ? 'selected' : '' }}>Passed</option>
                     <option value="failed" {{ old('status') == 'failed' ? 'selected' : '' }}>Failed</option>
+                    <option value="process" {{ old('status') == 'process' ? 'selected' : '' }}>Process</option>
+                    <option value="unprocess" {{ old('status') == 'unprocess' ? 'selected' : '' }}>Unprocess</option>
                 </select>
                 @error('status')
                     <span class="invalid-feedback">{{ $message }}</span>

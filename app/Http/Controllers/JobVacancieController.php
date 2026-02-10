@@ -43,8 +43,8 @@ class JobVacancieController extends Controller
         $request->validate([
             'departement_id' => 'required|exists:departements,departement_id',
             'position_id' => 'required|exists:positions,position_id',
-            'description' => 'required',
-            'requirements' => 'required',
+            'description' => 'nullable',
+            'requirements' => 'nullable',
             'status' => 'required|in:open,closed',
         ]);
 
@@ -98,8 +98,8 @@ class JobVacancieController extends Controller
         $request->validate([
             'departement_id'=>'required|exists:departements,departement_id',
             'position_id' => 'required|exists:positions,position_id',
-            'description' => 'required',
-            'requirements' => 'required',
+            'description' => 'nullable',
+            'requirements' => 'nullable',
             'status' => 'required|in:open,closed',
         ]);
 

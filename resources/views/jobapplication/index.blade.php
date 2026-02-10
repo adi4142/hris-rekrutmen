@@ -55,15 +55,14 @@
                                         <i class="fas fa-user mr-1"></i> {{ $app->jobApplicant->gender }} | {{ $age }} Tahun
                                     </small>
                                 @else
-                                    <span class="text-danger">Data Pelamar Terhapus</span>
+                                    <span class="text-danger">Data Pelamar Tidak Ditemukan</span>
                                 @endif
                             </td>
                             <td>
                                 @if($app->jobVacancie)
-                                    <span class="font-weight-bold text-primary">{{ $app->jobVacancie->title }}</span><br>
+                                    <span class="font-weight-bold text-primary">Melamar Sebagai : {{ $app->jobVacancie->title }}</span><br>
                                     <small>
-                                        {{ optional($app->jobVacancie->departement)->name ?? '-' }} <br>
-                                        {{ optional($app->jobVacancie->position)->name ?? '-' }}
+                                        Departemen : {{ optional($app->jobVacancie->departement)->name ?? '-' }}
                                     </small>
                                 @else
                                     <span class="text-muted">Lowongan Terhapus</span>
@@ -91,33 +90,47 @@
                                 <span class="badge badge-{{ $badgeClass }}">{{ $statusLabel }}</span>
                             </td>
                             <td>
+                                @if($app->jobApplicant)
+                                    @php
+                                        $docs = [
+                                            'cv_file' => ['icon' => 'fa-file-pdf', 'title' => 'CV'],
+                                            'cover_letter' => ['icon' => 'fa-envelope-open-text', 'title' => 'Surat Lamaran'],
+                                            'portfolio' => ['icon' => 'fa-briefcase', 'title' => 'Portofolio'],
+                                            'last_diploma' => ['icon' => 'fa-graduation-cap', 'title' => 'Ijazah'],
+                                            'transcript' => ['icon' => 'fa-file-invoice', 'title' => 'Transkrip'],
+                                            'supporting_certificates' => ['icon' => 'fa-certificate', 'title' => 'Sertifikat'],
+                                            'work_experience' => ['icon' => 'fa-user-tie', 'title' => 'Pengalaman']
+                                        ];
+                                    @endphp
+                                    <div class="d-flex flex-wrap mb-2" style="gap: 5px;">
+                                        @foreach($docs as $field => $data)
+                                            @if($app->jobApplicant->$field)
+                                                <a href="{{ asset('storage/' . $app->jobApplicant->$field) }}" target="_blank" class="btn btn-xs btn-outline-primary" title="{{ $data['title'] }}">
+                                                    <i class="fas {{ $data['icon'] }}"></i>
+                                                </a>
+                                            @endif
+                                        @endforeach
+                                    </div>
+                                @endif
+
                                 <div class="btn-group">
-                                    <button type="button" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown">
-                                        <i class="fas fa-cog"></i> Aksi
+                                    <button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" title="Update Status">
+                                        <i class="fas fa-edit mr-1"></i> Status
                                     </button>
                                     <div class="dropdown-menu">
-                                        @if($app->jobApplicant && $app->jobApplicant->cv_file)
-                                            <a class="dropdown-item" href="{{ asset('storage/' . $app->jobApplicant->cv_file) }}" target="_blank">
-                                                <i class="fas fa-file-download mr-2 text-primary"></i> Download CV
-                                            </a>
-                                            <div class="dropdown-divider"></div>
-                                        @endif
-                                        
-                                        <h6 class="dropdown-header">Update Status</h6>
-
                                         <form action="{{ route('jobapplication.update', $app->application_id) }}" method="POST">
                                             @csrf @method('PUT')
                                             <input type="hidden" name="status" value="approved">
                                             <button type="submit" class="dropdown-item">
-                                                <i class="fas fa-check mr-2 text-success"></i> Lolos Administrasi
+                                                <i class="fas fa-check mr-2 text-success"></i> Administrasi OK
                                             </button>
                                         </form>
-
+                                        
                                         <form action="{{ route('jobapplication.update', $app->application_id) }}" method="POST">
                                             @csrf @method('PUT')
                                             <input type="hidden" name="status" value="process">
                                             <button type="submit" class="dropdown-item">
-                                                <i class="fas fa-arrow-right mr-2 text-info"></i> Proses Seleksi
+                                                <i class="fas fa-tasks mr-2 text-info"></i> Seleksi
                                             </button>
                                         </form>
 
@@ -129,16 +142,21 @@
                                             </button>
                                         </form>
 
-                                        <div class="dropdown-divider"></div>
-
                                         <form action="{{ route('jobapplication.update', $app->application_id) }}" method="POST">
                                             @csrf @method('PUT')
                                             <input type="hidden" name="status" value="rejected">
                                             <button type="submit" class="dropdown-item">
-                                                <i class="fas fa-times mr-2 text-danger"></i> Tolak Lamaran
+                                                <i class="fas fa-times mr-2 text-danger"></i> Tolak
                                             </button>
                                         </form>
                                     </div>
+                                    
+                                    <form action="{{ route('jobapplication.destroy', $app->application_id) }}" method="POST" class="ml-1" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data lamaran ini?')">
+                                        @csrf @method('DELETE')
+                                        <button type="submit" class="btn btn-danger btn-xs" title="Hapus Permanen">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
                                 </div>
                             </td>
                         </tr>

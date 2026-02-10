@@ -260,6 +260,9 @@
                         <p class="job-description">
                             {{ Str::limit($vacancy->description, 100) }}
                         </p>
+                        <p class="job-requirements">
+                            {{ Str::limit($vacancy->requirements, 100) }}
+                        </p>
                     </div>
                     
                     <div style="margin-top: 20px;">

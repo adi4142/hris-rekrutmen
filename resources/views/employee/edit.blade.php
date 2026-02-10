@@ -88,8 +88,8 @@
         <br>
         <select name="gender" required>
             <option value="">-- Pilih Jenis Kelamin --</option>
-            <option value="Male" {{ $employee->gender == 'Male' ? 'selected' : '' }}>Laki-laki (Male)</option>
-            <option value="Female" {{ $employee->gender == 'Female' ? 'selected' : '' }}>Perempuan (Female)</option>
+            <option value="male" {{ strtolower($employee->gender) == 'male' ? 'selected' : '' }}>Laki-laki (male)</option>
+            <option value="female" {{ strtolower($employee->gender) == 'female' ? 'selected' : '' }}>Perempuan (female)</option>
         </select>
     </div>
 

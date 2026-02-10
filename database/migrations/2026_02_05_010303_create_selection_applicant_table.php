@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateSelectionApplicantsTable extends Migration
+class CreateSelectionApplicantTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,11 +13,11 @@ class CreateSelectionApplicantsTable extends Migration
      */
     public function up()
     {
-        Schema::create('selection_applicants', function (Blueprint $table) {
+        Schema::create('selection_applicant', function (Blueprint $table) {
             $table->bigIncrements('selection_applicant_id');
             $table->foreignId('selection_id')->references('selection_id')->on('selection');
             $table->foreignId('application_id')->references('application_id')->on('job_applications');
-            $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
+            $table->enum('status', ['passed', 'failed', 'process', 'unprocess'])->default('unprocess');
             $table->integer('score')->default(0);
             $table->text('notes')->nullable();
             $table->timestamps();
@@ -31,6 +31,6 @@ class CreateSelectionApplicantsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('selection_applicants');
+        Schema::dropIfExists('selection_applicant');
     }
 }

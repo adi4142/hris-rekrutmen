@@ -89,4 +89,64 @@ class AttendanceController extends Controller
             return response()->json(['success' => 'Berhasil Absen Keluar!']);
         }
     }
+
+    /**
+     * Dashboard untuk Karyawan
+     * Menampilkan statistik kehadiran pribadi
+     * 
+     * @return \Illuminate\View\View
+     */
+    public function employeeDashboard()
+    {
+        $user = auth()->user();
+        $employee = Employee::where('user_id', $user->user_id)->first();
+        
+        if (!$employee) {
+            return redirect()->route('login')->with('error', 'Data karyawan tidak ditemukan.');
+        }
+
+        // Statistik kehadiran bulan ini
+        $today = Carbon::today();
+        $startOfMonth = $today->copy()->startOfMonth();
+        $endOfMonth = $today->copy()->endOfMonth();
+
+        // Total kehadiran bulan ini
+        $totalPresent = Attendance::where('employee_nip', $employee->nip)
+            ->whereBetween('date', [$startOfMonth, $endOfMonth])
+            ->where('status', 'Present')
+            ->count();
+
+        // Total izin bulan ini
+        $totalPermission = Attendance::where('employee_nip', $employee->nip)
+            ->whereBetween('date', [$startOfMonth, $endOfMonth])
+            ->where('status', 'Permission')
+            ->count();
+
+        // Total terlambat bulan ini
+        $totalLate = Attendance::where('employee_nip', $employee->nip)
+            ->whereBetween('date', [$startOfMonth, $endOfMonth])
+            ->where('status', 'Late')
+            ->count();
+
+        // Absensi hari ini
+        $todayAttendance = Attendance::where('employee_nip', $employee->nip)
+            ->where('date', $today->toDateString())
+            ->first();
+
+        // Riwayat absensi 7 hari terakhir
+        $recentAttendances = Attendance::where('employee_nip', $employee->nip)
+            ->orderBy('date', 'desc')
+            ->take(7)
+            ->get();
+
+        return view('attendance.employee_dashboard', compact(
+            'user',
+            'employee',
+            'totalPresent',
+            'totalPermission',
+            'totalLate',
+            'todayAttendance',
+            'recentAttendances'
+        ));
+    }
 }

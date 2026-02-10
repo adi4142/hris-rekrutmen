@@ -27,9 +27,26 @@ class JobAplicantController extends Controller
      */
     public function create(Request $request)
     {
+        $user = auth()->user();
+        
+        // Check if user already has an active application
+        if ($user && $user->tamu) {
+            $activeApplication = $user->tamu->applications()
+                ->whereNotIn('status', ['accepted', 'rejected'])
+                ->exists();
+            
+            if ($activeApplication) {
+                return redirect()->route('applicant.dashboard')->with('error', 'Anda masih dalam proses seleksi. Selesaikan proses tersebut sebelum melamar lowongan lain.');
+            }
+        }
+
         $jobVacancies = JobVacancie::all();
         $selectedVacancyId = $request->query('vacancies_id');
-        return view('jobapplicant.create', compact('jobVacancies', 'selectedVacancyId'));
+        
+        // If user already has a profile, we might want to pass it to the view to pre-fill
+        $applicant = $user ? $user->tamu : null;
+        
+        return view('jobapplicant.create', compact('jobVacancies', 'selectedVacancyId', 'applicant'));
     }
 
     /**
@@ -40,35 +57,76 @@ class JobAplicantController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'name' => 'required',
-            'email' => 'required|email',
-            'phone' => 'required',
-            'address' => 'required',
-            'date_of_birth' => 'required',
-            'gender' => 'required',
-            'vacancies_id' => 'required|exists:job_vacancies,vacancies_id',
-            'cv_file' => 'nullable|mimes:pdf,doc,docx,jpg,jpeg,png|max:2048',
-        ]);
+        $user = auth()->user();
 
-        $cv_file = null;
+        // Double check for active application
+        if ($user && $user->tamu) {
+            $activeApplication = $user->tamu->applications()
+                ->whereNotIn('status', ['accepted', 'rejected'])
+                ->exists();
+            
+            if ($activeApplication) {
+                return redirect()->route('applicant.dashboard')->with('error', 'Anda masih dalam proses seleksi.');
+            }
 
-        if ($request->hasFile('cv_file')) {
-            $cv_file = $request->file('cv_file')->store('cv_files', 'public');
         }
 
-        $jobApplicant = JobApplicant::create([
-            'user_id' => auth()->id(),
-            'name' => $request->name,
-            'email' => $request->email,
-            'phone' => $request->phone,
-            'address' => $request->address,
-            'date_of_birth' => $request->date_of_birth,
-            'gender' => $request->gender,
-            'cv_file' => $cv_file,
-        ]);
+        $validationRules = [
+            'vacancies_id' => 'required|exists:job_vacancies,vacancies_id',
+            'cv_file' => 'nullable|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120',
+            'cover_letter' => 'nullable|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120',
+            'portfolio' => 'nullable|mimes:pdf,doc,docx,jpg,jpeg,png|max:10240',
+            'last_diploma' => 'nullable|mimes:pdf,jpg,jpeg,png|max:5120',
+            'transcript' => 'nullable|mimes:pdf,jpg,jpeg,png|max:5120',
+            'supporting_certificates' => 'nullable|mimes:pdf,zip,jpg,jpeg,png|max:10240',
+            'work_experience' => 'nullable|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120',
+        ];
 
-        // Otomatis buat data di tabel job_applications
+        // Reuse or create applicant profile
+        $jobApplicant = $user ? $user->tamu : null;
+
+        if (!$jobApplicant) {
+            $validationRules['name'] = 'required';
+            $validationRules['email'] = 'required|email|unique:job_applicants,email';
+            $validationRules['phone'] = 'required';
+            $validationRules['address'] = 'required';
+            $validationRules['date_of_birth'] = 'required';
+            $validationRules['gender'] = 'required|in:male,female';
+        }
+
+        $request->validate($validationRules);
+
+        $data = $request->only(['name', 'email', 'phone', 'address', 'date_of_birth', 'gender']);
+        
+        $fileFields = [
+            'cv_file', 
+            'cover_letter', 
+            'portfolio', 
+            'last_diploma', 
+            'transcript', 
+            'supporting_certificates', 
+            'work_experience'
+        ];
+
+        foreach ($fileFields as $field) {
+            if ($request->hasFile($field)) {
+                // Delete old file if exists
+                if ($jobApplicant && $jobApplicant->$field && \Storage::disk('public')->exists($jobApplicant->$field)) {
+                    \Storage::disk('public')->delete($jobApplicant->$field);
+                }
+                $data[$field] = $request->file($field)->store('applicant_documents', 'public');
+            }
+        }
+
+        if (!$jobApplicant) {
+            $data['user_id'] = auth()->id();
+            $jobApplicant = JobApplicant::create($data);
+        } else {
+            // Only update fields that are present in request
+            $jobApplicant->update(array_filter($data));
+        }
+
+        // Create job application
         JobApplication::create([
             'vacancies_id' => $request->vacancies_id,
             'job_applicant_id' => $jobApplicant->job_applicant_id,
@@ -116,31 +174,42 @@ class JobAplicantController extends Controller
     {
         $request->validate([
             'name' => 'required',
-            'email' => 'required|email',
+            'email' => 'required|email|unique:job_applicants,email,'.$id.',job_applicant_id',
             'phone' => 'required',
             'address' => 'required',
             'date_of_birth' => 'required',
-            'gender' => 'required',
-            'cv_file' => 'nullable|mimes:pdf,doc,docx,jpg,jpeg,png|max:2048',
+            'gender' => 'required|in:male,female',
+            'cv_file' => 'nullable|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120',
+            'cover_letter' => 'nullable|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120',
+            'portfolio' => 'nullable|mimes:pdf,doc,docx,jpg,jpeg,png|max:10240',
+            'last_diploma' => 'nullable|mimes:pdf,jpg,jpeg,png|max:5120',
+            'transcript' => 'nullable|mimes:pdf,jpg,jpeg,png|max:5120',
+            'supporting_certificates' => 'nullable|mimes:pdf,zip,jpg,jpeg,png|max:10240',
+            'work_experience' => 'nullable|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120',
         ]);
 
         $jobApplicant = JobApplicant::findOrFail($id);
         
-        $data = [
-            'name' => $request->name,
-            'email' => $request->email,
-            'phone' => $request->phone,
-            'address' => $request->address,
-            'date_of_birth' => $request->date_of_birth,
-            'gender' => $request->gender,
+        $data = $request->only(['name', 'email', 'phone', 'address', 'date_of_birth', 'gender']);
+
+        $fileFields = [
+            'cv_file', 
+            'cover_letter', 
+            'portfolio', 
+            'last_diploma', 
+            'transcript', 
+            'supporting_certificates', 
+            'work_experience'
         ];
 
-        if ($request->hasFile('cv_file')) {
-            // Delete old file if exists
-            if ($jobApplicant->cv_file && \Storage::disk('public')->exists($jobApplicant->cv_file)) {
-                \Storage::disk('public')->delete($jobApplicant->cv_file);
+        foreach ($fileFields as $field) {
+            if ($request->hasFile($field)) {
+                // Delete old file if exists
+                if ($jobApplicant->$field && \Storage::disk('public')->exists($jobApplicant->$field)) {
+                    \Storage::disk('public')->delete($jobApplicant->$field);
+                }
+                $data[$field] = $request->file($field)->store('applicant_documents', 'public');
             }
-            $data['cv_file'] = $request->file('cv_file')->store('cv_files', 'public');
         }
 
         $jobApplicant->update($data);
@@ -163,5 +232,11 @@ class JobAplicantController extends Controller
 
         $jobApplicant->delete();
         return redirect()->route('jobapplicant.index');
+    }
+
+    public function totalApplicant()
+    {
+        $totalApplicant = JobApplicant::count();
+        return response()->json(['totalApplicant' => $totalApplicant]);
     }
 }

@@ -39,6 +39,6 @@ class RegisterController extends Controller
 
         Auth::login($user);
 
-        return redirect()->route('employee.index');
+        return redirect()->route('login')->with('success', 'Registrasi berhasil, silahkan login');
     }
 }

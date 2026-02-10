@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/png" href="{{ asset('AdminLTE/dist/img/vneu.avif') }}" />
-  <title>{{ config('app.name', 'HRIS') }} | @yield('title', 'Admin')</title>
+  <title>{{ config('app.name', 'HRIS') }} | @yield('title', 'Pelamar')</title>
 
   <!-- Google Font: Source Sans Pro -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
@@ -36,6 +36,10 @@
           <i class="far fa-user"></i> {{ auth()->user()->name ?? 'Guest' }}
         </a>
         <div class="dropdown-menu dropdown-menu-right">
+          <a href="{{ route('applicant.profile') }}" class="dropdown-item">
+            <i class="fas fa-user-edit mr-2"></i> Profil Saya
+          </a>
+          <div class="dropdown-divider"></div>
           <form action="{{ route('logout') }}" method="POST">
             @csrf
             <button type="submit" class="dropdown-item">
@@ -49,28 +53,11 @@
   <!-- /.navbar -->
 
   <!-- Main Sidebar Container -->
-  <aside class="main-sidebar sidebar-dark-primary elevation-4">
+  <aside class="main-sidebar sidebar-dark-info elevation-4">
     <!-- Brand Logo -->
-    @php
-        // Tentukan route dashboard berdasarkan role
-        $userRole = auth()->user()->role ? strtolower(auth()->user()->role->name) : '';
-        
-        // Gunakan switch untuk kompatibilitas PHP 7.4
-        switch ($userRole) {
-            case 'admin':
-                $dashboardRoute = 'admin.dashboard';
-                break;
-            case 'hrd':
-                $dashboardRoute = 'hrd.dashboard';
-                break;
-            default:
-                $dashboardRoute = 'dashboard';
-                break;
-        }
-    @endphp
-    <a href="{{ route($dashboardRoute) }}" class="brand-link">
-      <img src="{{ asset('AdminLTE/dist/img/AdminLTELogo.png') }}" alt="AdminLTE Logo" class="brand-image img-circle elevation-3" style="opacity: .8">
-      <span class="brand-text font-weight-light">HRIS System</span>
+    <a href="{{ route('applicant.dashboard') }}" class="brand-link">
+      <img src="{{ asset('AdminLTE/dist/img/AdminLTELogo.png') }}" alt="Logo" class="brand-image img-circle elevation-3" style="opacity: .8">
+      <span class="brand-text font-weight-light">Portal Pelamar</span>
     </a>
 
     <!-- Sidebar -->
@@ -81,8 +68,8 @@
           <img src="{{ asset('AdminLTE/dist/img/user2-160x160.jpg') }}" class="img-circle elevation-2" alt="User Image">
         </div>
         <div class="info">
-          <a href="#" class="d-block">{{ auth()->user()->name ?? 'Guest' }}</a>
-          <small class="text-info">{{ ucfirst($userRole) }}</small>
+          <a href="{{ route('applicant.profile') }}" class="d-block">{{ auth()->user()->name ?? 'Guest' }}</a>
+          <small class="text-info">Pelamar</small>
         </div>
       </div>
 
@@ -90,79 +77,31 @@
       <nav class="mt-2">
         <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
           <li class="nav-item">
-            <a href="{{ route($dashboardRoute) }}" class="nav-link {{ request()->is('admin/dashboard') || request()->is('hrd/dashboard') ? 'active' : '' }}">
+            <a href="{{ route('applicant.dashboard') }}" class="nav-link {{ request()->is('applicant/dashboard') ? 'active' : '' }}">
               <i class="nav-icon fas fa-tachometer-alt"></i>
               <p>Dashboard</p>
             </a>
           </li>
-          <li class="nav-header">REKRUTMEN</li>
+          <li class="nav-header">LAMARAN</li>
           <li class="nav-item">
-            <a href="{{ route('jobvacancie.index') }}" class="nav-link {{ request()->is('jobvacancie*') ? 'active' : '' }}">
+            <a href="{{ route('applicant.vacancies') }}" class="nav-link {{ request()->is('applicant/vacancies*') ? 'active' : '' }}">
               <i class="nav-icon fas fa-briefcase"></i>
-              <p>Lowongan Kerja</p>
+              <p>Lowongan Tersedia</p>
             </a>
           </li>
           <li class="nav-item">
-            <a href="{{ route('jobapplication.index') }}" class="nav-link {{ request()->is('jobapplication*') ? 'active' : '' }}">
+            <a href="{{ route('applicant.applications') }}" class="nav-link {{ request()->is('applicant/applications*') ? 'active' : '' }}">
               <i class="nav-icon fas fa-file-alt"></i>
-              <p>Lamaran Masuk</p>
+              <p>Riwayat Lamaran</p>
             </a>
           </li>
+          <li class="nav-header">AKUN</li>
           <li class="nav-item">
-            <a href="{{ route('jobapplicant.index') }}" class="nav-link {{ request()->is('jobapplicant*') ? 'active' : '' }}">
-              <i class="nav-icon fas fa-user-tie"></i>
-              <p>Pelamar</p>
+            <a href="{{ route('applicant.profile') }}" class="nav-link {{ request()->is('applicant/profile*') ? 'active' : '' }}">
+              <i class="nav-icon fas fa-user-edit"></i>
+              <p>Profil Saya</p>
             </a>
           </li>
-          <li class="nav-item">
-            <a href="{{ route('selection.index') }}" class="nav-link {{ request()->is('selection*') ? 'active' : '' }}">
-              <i class="nav-icon fas fa-tasks"></i>
-              <p>Proses Seleksi</p>
-            </a>
-          </li>
-          
-          <li class="nav-item">
-            <a href="{{ route('selectionapplicant.index') }}" class="nav-link {{ request()->is('selectionapplicant*') ? 'active' : '' }}">
-              <i class="nav-icon fas fa-user-check"></i>
-              <p>Seleksi Pelamar</p>
-            </a>
-          </li>
-@if($userRole == 'admin')
-          <li class="nav-header">PENGATURAN</li>
-          <li class="nav-item">
-            <a href="{{ route('user.index') }}" class="nav-link {{ request()->is('user*') ? 'active' : '' }}">
-              <i class="nav-icon fas fa-user-cog"></i>
-              <p>User Management</p>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="{{ route('role.index') }}" class="nav-link {{ request()->is('role*') ? 'active' : '' }}">
-              <i class="nav-icon fas fa-user-tag"></i>
-              <p>Roles</p>
-            </a>
-          </li>
-          @endif
-          @if($userRole == 'hrd' || $userRole == 'admin')
-          <li class="nav-header">Master Data</li>
-          <li class="nav-item">
-            <a href="{{ route('division.index') }}" class="nav-link {{ request()->is('division*') ? 'active' : '' }}">
-              <i class="nav-icon fas fa-layer-group"></i>
-              <p>Divisi</p>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="{{ route('departement.index') }}" class="nav-link {{ request()->is('departement*') ? 'active' : '' }}">
-              <i class="nav-icon fas fa-layer-group"></i>
-              <p>Departemen</p>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="{{ route('position.index') }}" class="nav-link {{ request()->is('position*') ? 'active' : '' }}">
-              <i class="nav-icon fas fa-layer-group"></i>
-              <p>Jabatan</p>
-            </a>
-          </li>
-          @endif          
         </ul>
       </nav>
       <!-- /.sidebar-menu -->
@@ -181,7 +120,7 @@
           </div>
           <div class="col-sm-6">
             <ol class="breadcrumb float-sm-right">
-              <li class="breadcrumb-item"><a href="#">Home</a></li>
+              <li class="breadcrumb-item"><a href="{{ route('applicant.dashboard') }}">Home</a></li>
               <li class="breadcrumb-item active">@yield('page_title', 'Dashboard')</li>
             </ol>
           </div>

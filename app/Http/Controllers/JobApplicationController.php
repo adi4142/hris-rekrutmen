@@ -92,6 +92,14 @@ class JobApplicationController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $jobapplication = JobApplication::findOrFail($id);
+        
+        // Hapus data seleksi yang berelasi terlebih dahulu
+        $jobapplication->selectionApplicant()->delete();
+        
+        // Baru hapus data lamarannya
+        $jobapplication->delete();
+        
+        return redirect()->back()->with('success', 'Data lamaran berhasil dihapus');
     }
 }

@@ -57,7 +57,7 @@ class SelectionApplicantController extends Controller
             'application_id' => 'required',
             'score' => 'nullable|numeric',
             'notes' => 'nullable|string',
-            'status' => 'required|in:passed,failed,pending',
+            'status' => 'required|in:passed,failed,process,unprocess',
         ]);
 
         SelectionApplicant::create([
@@ -110,7 +110,7 @@ class SelectionApplicantController extends Controller
             'application_id' => 'required',
             'score' => 'required',
             'notes' => 'required',
-            'status' => 'required|in:passed,failed',
+            'status' => 'required|in:passed,failed,process,unprocess',
         ]);
 
         $selectionApplicant = SelectionApplicant::findOrFail($id);

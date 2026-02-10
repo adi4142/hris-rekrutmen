@@ -55,7 +55,7 @@ class EmployeeController extends Controller
             'division_id'=>'required|exists:divisions,division_id',
             'address'=>'required|string',
             'date_of_birth'=>'required|date',
-            'gender'=>'required|in:Male,Female'
+            'gender'=>'required|in:male,female'
         ]);
 
         Employee::create([
@@ -122,7 +122,7 @@ class EmployeeController extends Controller
             'division_id' => 'required|exists:divisions,division_id',
             'address' => 'required|string',
             'date_of_birth' => 'required|date',
-            'gender' => 'required|in:Male,Female'
+            'gender' => 'required|in:male,female'
         ]);
 
         Employee::where('nip', $nip)->update([

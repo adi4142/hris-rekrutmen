@@ -15,9 +15,6 @@
   <!-- Theme style -->
   <link rel="stylesheet" href="{{ asset('AdminLTE/dist/css/adminlte.min.css') }}">
   <style>
-    body {
-      background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%) !important;
-    }
     .login-box, .register-box {
       width: 400px;
     }

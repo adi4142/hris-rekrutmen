@@ -18,7 +18,13 @@ class JobApplicant extends Model
         'address',
         'date_of_birth',
         'gender',
-        'cv_file'
+        'cv_file',
+        'cover_letter',
+        'portfolio',
+        'last_diploma',
+        'transcript',
+        'supporting_certificates',
+        'work_experience'
     ];
 
     public function user()

@@ -49,8 +49,10 @@
                                                             <span class="badge badge-success">Lolos</span>
                                                         @elseif($selection->status == 'failed')
                                                             <span class="badge badge-danger">Gagal</span>
+                                                        @elseif($selection->status == 'process')
+                                                            <span class="badge badge-info">Dalam Proses</span>
                                                         @else
-                                                            <span class="badge badge-warning">Pending</span>
+                                                            <span class="badge badge-secondary">Belum Diproses</span>
                                                         @endif
                                                         
                                                         <a href="{{ route('selectionapplicant.edit', $selection->selection_applicant_id) }}" class="ml-2 text-warning" title="Edit Nilai">
