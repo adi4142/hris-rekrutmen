@@ -14,7 +14,7 @@
             <div class="icon">
                 <i class="fas fa-user-tie"></i>
             </div>
-            <a href="{{ route('attendance.index') }}" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+            <a href="{{ route('jobapplicant.index') }}" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
         </div>
     </div>
     <div class="col-lg-3 col-6">

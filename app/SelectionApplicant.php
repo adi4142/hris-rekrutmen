@@ -16,6 +16,7 @@ class SelectionApplicant extends Model
         'score',
         'notes',
         'status',
+        'selection_date',
     ];
 
     public function jobapplication()

@@ -296,7 +296,6 @@
                 <a href="{{ route('dashboard') }}" class="btn btn-primary">Dashboard</a>
             @else
                 <a href="{{ route('login') }}" class="btn btn-outline">Login</a>
-                <a href="{{ route('register') }}" class="btn btn-primary">Daftar</a>
             @endauth
         </div>
     </nav>
@@ -321,21 +320,6 @@
             <p>Fitur-fitur unggulan yang memudahkan operasional HR diperusahaan Anda.</p>
         </div>
         <div class="feature-grid">
-            <div class="feature-card">
-                <div class="feature-icon"><i class="fas fa-users"></i></div>
-                <h3>Manajemen Karyawan</h3>
-                <p>Database terpusat untuk semua informasi karyawan, dari data pribadi hingga riwayat jabatan.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon"><i class="fas fa-calendar-check"></i></div>
-                <h3>Absensi & Presensi</h3>
-                <p>Pantau kehadiran karyawan secara real-time dengan integrasi sistem yang mudah.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon"><i class="fas fa-money-bill-wave"></i></div>
-                <h3>Payroll & Gaji</h3>
-                <p>Otomatisasi perhitungan gaji, tunjangan, dan potongan dengan akurasi tinggi.</p>
-            </div>
             <div class="feature-card">
                 <div class="feature-icon"><i class="fas fa-user-plus"></i></div>
                 <h3>Rekrutmen</h3>

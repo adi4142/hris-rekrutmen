@@ -13,6 +13,152 @@
   <!-- Theme style -->
   <link rel="stylesheet" href="{{ asset('AdminLTE/dist/css/adminlte.min.css') }}">
   @stack('styles')
+  <style>
+    /* Chatbot Widget Styles */
+    .chat-widget {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 350px;
+        max-height: 500px;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 5px 25px rgba(0,0,0,0.25);
+        border-radius: 15px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+    
+    .chat-widget.minimized {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        overflow: hidden;
+    }
+    
+    .chat-header {
+        background: linear-gradient(135deg, #667eea 0%, #3f25e6 100%);
+        color: white;
+        padding: 12px 15px;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .chat-body {
+        background: white;
+        flex-grow: 1;
+        overflow-y: auto;
+        padding: 15px;
+        height: 320px;
+    }
+    
+    .chat-footer {
+        padding: 10px;
+        background: #f8f9fa;
+        border-top: 1px solid #e9ecef;
+    }
+    
+    .message {
+        margin-bottom: 12px;
+        padding: 10px 14px;
+        border-radius: 18px;
+        max-width: 85%;
+        word-wrap: break-word;
+        font-size: 14px;
+        line-height: 1.4;
+    }
+    
+    .message.user {
+        background: linear-gradient(135deg, #667eea 0%, #3f25e6 100%);
+        color: white;
+        margin-left: auto;
+        border-bottom-right-radius: 4px;
+    }
+    
+    .message.bot {
+        background: #f1f3f4;
+        color: #333;
+        margin-right: auto;
+        border-bottom-left-radius: 4px;
+    }
+    
+    .chat-toggle-btn {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, #667eea 0%, #3f25e6 100%);
+        color: white;
+        border-radius: 50%;
+        display: none;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        font-size: 24px;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        transition: transform 0.2s ease;
+    }
+    
+    .chat-toggle-btn:hover {
+        transform: scale(1.1);
+    }
+    
+    .chat-widget.minimized .chat-header,
+    .chat-widget.minimized .chat-body,
+    .chat-widget.minimized .chat-footer {
+        display: none;
+    }
+    
+    .chat-widget.minimized .chat-toggle-btn {
+        display: flex;
+    }
+    
+    .typing-indicator {
+        display: flex;
+        gap: 4px;
+    }
+    
+    .typing-indicator span {
+        width: 8px;
+        height: 8px;
+        background: #667eea;
+        border-radius: 50%;
+        animation: bounce 1.4s infinite ease-in-out both;
+    }
+    
+    .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+    .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+    
+    @keyframes bounce {
+        0%, 80%, 100% { transform: scale(0); }
+        40% { transform: scale(1); }
+    }
+    
+    /* Quick Reply Buttons */
+    .quick-replies {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        margin-top: 8px;
+    }
+    
+    .quick-reply-btn {
+        background: #667eea;
+        color: white;
+        border: none;
+        padding: 5px 12px;
+        border-radius: 15px;
+        font-size: 12px;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+    
+    .quick-reply-btn:hover {
+        background: #5a6fd6;
+    }
+</style>
+
 </head>
 <body class="hold-transition sidebar-mini">
 <div class="wrapper">

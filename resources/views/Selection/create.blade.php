@@ -3,7 +3,7 @@
 
 <div class="row">
     <div class="col-12">
-        <div class="card">
+        <div class="card card-primary card-outline">
             <div class="card-header">
                 <h3 class="card-title">Tambah Selection</h3>
             </div>

@@ -37,7 +37,7 @@ class LoginController extends Controller
     {
         // Validasi input
         $credentials = $request->validate([
-            'email' => ['required', 'email'],
+            'name' => ['required'],
             'password' => ['required'],
         ]);
 
@@ -46,14 +46,32 @@ class LoginController extends Controller
             // Regenerate session untuk keamanan
             $request->session()->regenerate();
 
+            // Cek apakah user perlu verifikasi role tambahan
+            $user = auth()->user();
+
+            // Cek apakah akun aktif
+            if ($user->status == 'suspended') {
+                auth()->logout();
+                return redirect('/login')->withErrors([
+                    'name' => 'Akun Anda telah ditangguhkan. Silakan hubungi Super Administrator.',
+                ]);
+            }
+
+            $roleName = $user->role ? strtolower($user->role->name) : '';
+            
+            // Admin dan HRD harus verifikasi license code
+            if (in_array($roleName, ['admin', 'hrd']) && !$user->is_role_verified) {
+                return redirect()->route('role.verify.form');
+            }
+
             // Redirect ke dashboard sesuai role
             return $this->redirectToDashboard();
         }
 
         // Login gagal
         return back()->withErrors([
-            'email' => 'Email atau password yang anda masukkan salah.',
-        ])->withInput($request->only('email'));
+            'name' => 'Email atau password yang anda masukkan salah.',
+        ])->withInput($request->only('name'));
     }
 
     /**
@@ -83,18 +101,18 @@ class LoginController extends Controller
     protected function redirectToDashboard()
     {
         $user = auth()->user();
-        $role = $user->role ? strtolower($user->role->name) : '';
+        $role = $user->role ? str_replace(' ', '', strtolower($user->role->name)) : '';
 
         // Redirect berdasarkan role
         switch ($role) {
+            case 'superadmin':
+                return redirect()->route('superadmin.dashboard');
+
             case 'admin':
                 return redirect()->route('admin.dashboard');
             
             case 'hrd':
                 return redirect()->route('hrd.dashboard');
-            
-            case 'karyawan':
-                return redirect()->route('employee.dashboard');
             
             case 'pelamar':
             case 'tamu':
@@ -104,7 +122,7 @@ class LoginController extends Controller
                 // Untuk role yang tidak dikenal, logout dan tampilkan error
                 auth()->logout();
                 return redirect('/login')->withErrors([
-                    'email' => 'Akun Anda tidak memiliki role yang valid. Silakan hubungi administrator.',
+                    'name' => 'Akun Anda tidak memiliki role yang valid. Silakan hubungi administrator.',
                 ]);
         }
     }

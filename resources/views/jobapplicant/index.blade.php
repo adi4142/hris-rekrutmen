@@ -40,32 +40,31 @@
                         </td>
                         <td>
                             @php
-                                $docs = [
-                                    'cv_file' => ['icon' => 'fa-file-pdf', 'title' => 'CV'],
-                                    'cover_letter' => ['icon' => 'fa-envelope-open-text', 'title' => 'Surat Lamaran'],
-                                    'portfolio' => ['icon' => 'fa-briefcase', 'title' => 'Portofolio'],
-                                    'last_diploma' => ['icon' => 'fa-graduation-cap', 'title' => 'Ijazah'],
-                                    'transcript' => ['icon' => 'fa-file-invoice', 'title' => 'Transkrip'],
-                                    'supporting_certificates' => ['icon' => 'fa-certificate', 'title' => 'Sertifikat'],
-                                    'work_experience' => ['icon' => 'fa-user-tie', 'title' => 'Pengalaman']
+                                $docsData = [
+                                    ["title" => "CV", "url" => $jobApplicant->cv_file ? asset("storage/" . $jobApplicant->cv_file) : null, "icon" => "fa-file-pdf"],
+                                    ["title" => "Surat Lamaran", "url" => $jobApplicant->cover_letter ? asset("storage/" . $jobApplicant->cover_letter) : null, "icon" => "fa-envelope-open-text"],
+                                    ["title" => "Portofolio", "url" => $jobApplicant->portfolio ? asset("storage/" . $jobApplicant->portfolio) : null, "icon" => "fa-briefcase"],
+                                    ["title" => "Ijazah", "url" => $jobApplicant->last_diploma ? asset("storage/" . $jobApplicant->last_diploma) : null, "icon" => "fa-graduation-cap"],
+                                    ["title" => "Transkrip", "url" => $jobApplicant->transcript ? asset("storage/" . $jobApplicant->transcript) : null, "icon" => "fa-file-invoice"],
+                                    ["title" => "Sertifikat", "url" => $jobApplicant->supporting_certificates ? asset("storage/" . $jobApplicant->supporting_certificates) : null, "icon" => "fa-certificate"],
+                                    ["title" => "Pengalaman Kerja", "url" => $jobApplicant->work_experience ? asset("storage/" . $jobApplicant->work_experience) : null, "icon" => "fa-user-tie"]
                                 ];
-                                $found = false;
+                                
+                                $docsCount = 0;
+                                foreach($docsData as $doc) {
+                                    if($doc['url']) $docsCount++;
+                                }
                             @endphp
                             
-                            <div class="d-flex flex-wrap" style="gap: 5px;">
-                                @foreach($docs as $field => $data)
-                                    @if($jobApplicant->$field)
-                                        <a href="{{ asset('storage/' . $jobApplicant->$field) }}" target="_blank" class="btn btn-xs btn-outline-primary" title="{{ $data['title'] }}">
-                                            <i class="fas {{ $data['icon'] }}"></i>
-                                        </a>
-                                        @php $found = true; @endphp
-                                    @endif
-                                @endforeach
-                                
-                                @if(!$found)
-                                    <span class="text-muted small">Tidak ada dokumen</span>
-                                @endif
-                            </div>
+                            @if($docsCount > 0)
+                                <button type="button" class="btn btn-info btn-sm btn-view-docs" 
+                                    data-name="{{ $jobApplicant->name }}"
+                                    data-docs='@json($docsData)'>
+                                    <i class="fas fa-file-alt mr-1"></i> {{ $docsCount }} Dokumen
+                                </button>
+                            @else
+                                <span class="text-muted small">Tidak ada dokumen</span>
+                            @endif
                         </td>
                         <td>
                             <div class="btn-group">
@@ -88,4 +87,66 @@
         </div>
     </div>
 </div>
+
+<!-- Modal Dokumen -->
+<div class="modal fade" id="modalDocs" tabindex="-1" role="dialog" aria-labelledby="modalDocsLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-info">
+                <h5 class="modal-title" id="modalDocsLabel font-weight-bold"><i class="fas fa-file-alt mr-2"></i> Dokumen Pelamar: <span id="applicantName"></span></h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="docsList" class="row">
+                    <!-- Dokumen akan dimuat di sini via JS -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
+
+@push('scripts')
+<script>
+$(document).ready(function() {
+    $('.btn-view-docs').on('click', function() {
+        const name = $(this).data('name');
+        const docs = $(this).data('docs');
+        
+        $('#applicantName').text(name);
+        let docsHtml = '';
+        
+        docs.forEach(doc => {
+            if (doc.url) {
+                docsHtml += `
+                    <div class="col-md-6 mb-3">
+                        <div class="info-box shadow-sm">
+                            <span class="info-box-icon bg-info"><i class="fas ${doc.icon}"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text font-weight-bold">${doc.title}</span>
+                                <div class="mt-2">
+                                    <a href="${doc.url}" target="_blank" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-eye mr-1"></i> Lihat
+                                    </a>
+                                    <a href="${doc.url}" download class="btn btn-sm btn-outline-info ml-1">
+                                        <i class="fas fa-download"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        });
+        
+        $('#docsList').html(docsHtml);
+        $('#modalDocs').modal('show');
+    });
+});
+</script>
+@endpush

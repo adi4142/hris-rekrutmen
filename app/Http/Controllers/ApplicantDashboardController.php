@@ -96,6 +96,15 @@ class ApplicantDashboardController extends Controller
             'activeApplication'
         ));
     }
+    
+
+    public function editProfile()
+    {
+        $user = auth()->user();
+        $applicant = JobApplicant::where('user_id', $user->user_id)->first();
+
+        return view('applicant.profile_edit', compact('user', 'applicant'));
+    }
 
     /**
      * Tampilkan halaman profil pelamar
@@ -119,35 +128,52 @@ class ApplicantDashboardController extends Controller
     public function updateProfile(Request $request)
     {
         $user = auth()->user();
+        $applicant = JobApplicant::where('user_id', $user->user_id)->first();
         
+        // Pre-validate for new profiles (require CV)
+        $isNew = !$applicant;
+
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
+            'email' => 'required|email|max:255|unique:users,email,' . $user->user_id . ',user_id',
             'phone' => 'required|string|max:20',
             'address' => 'required|string',
             'date_of_birth' => 'required|date',
             'gender' => 'required|in:male,female',
-            'cv_file' => 'nullable|mimes:pdf,doc,docx|max:2048',
+            'cv_file' => ($isNew ? 'required' : 'nullable') . '|mimes:pdf,doc,docx|max:2048',
+            'photo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
+
+        // Update User info
+        $user->update([
+            'name' => $request->name,
+            'email' => $request->email,
+        ]);
+
+        $profileData = [
+            'name' => $request->name,
+            'email' => $request->email,
+            'phone' => $request->phone,
+            'address' => $request->address,
+            'date_of_birth' => $request->date_of_birth,
+            'gender' => $request->gender,
+        ];
+
+        // Handle CV upload
+        if ($request->hasFile('cv_file')) {
+            $profileData['cv_file'] = $request->file('cv_file')->store('cv_files', 'public');
+        }
+
+        // Handle Photo upload
+        if ($request->hasFile('photo')) {
+            $profileData['photo'] = $request->file('photo')->store('profile_photos', 'public');
+        }
 
         // Update atau create data pelamar
         $applicant = JobApplicant::updateOrCreate(
             ['user_id' => $user->user_id],
-            [
-                'name' => $request->name,
-                'email' => $request->email,
-                'phone' => $request->phone,
-                'address' => $request->address,
-                'date_of_birth' => $request->date_of_birth,
-                'gender' => $request->gender,
-            ]
+            $profileData
         );
-
-        // Handle CV upload jika ada
-        if ($request->hasFile('cv_file')) {
-            $cvPath = $request->file('cv_file')->store('cv_files', 'public');
-            $applicant->update(['cv_file' => $cvPath]);
-        }
 
         return redirect()->route('applicant.profile')
             ->with('success', 'Profil berhasil diperbarui.');
@@ -237,15 +263,56 @@ class ApplicantDashboardController extends Controller
             }
         }
 
+        // Ambil data lowongan untuk cek dokumen yang diperlukan
+        $vacancy = JobVacancie::findOrFail($vacancies_id);
+        $requiredDocs = json_decode($vacancy->required_documents) ?? [];
+
+        // Validasi file yang diunggah
+        $rules = [];
+        foreach ($requiredDocs as $docName) {
+            $rules["required_files.$docName"] = 'required|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:2048';
+        }
+        $request->validate($rules);
+
+        $uploadedDocs = [];
+
+        // 1. Simpan file yang diwajibkan
+        if ($request->hasFile('required_files')) {
+            foreach ($request->file('required_files') as $name => $file) {
+                $path = $file->store('application_documents', 'public');
+                $uploadedDocs[] = [
+                    'name' => $name,
+                    'path' => $path,
+                    'type' => 'required'
+                ];
+            }
+        }
+
+        // 2. Simpan file tambahan
+        if ($request->additional_doc_names) {
+            foreach ($request->additional_doc_names as $index => $name) {
+                if ($request->hasFile("additional_files.$index") && !empty($name)) {
+                    $file = $request->file("additional_files.$index");
+                    $path = $file->store('application_documents', 'public');
+                    $uploadedDocs[] = [
+                        'name' => $name,
+                        'path' => $path,
+                        'type' => 'additional'
+                    ];
+                }
+            }
+        }
+
         // Buat lamaran baru
         JobApplication::create([
             'job_applicant_id' => $applicant->job_applicant_id,
             'vacancies_id' => $vacancies_id,
             'status' => 'pending',
+            'documents' => json_encode($uploadedDocs),
         ]);
 
         return redirect()->route('applicant.applications')
-            ->with('success', 'Lamaran berhasil dikirim!');
+            ->with('success', 'Lamaran berhasil dikirim dengan dokumen pendukung!');
     }
 
     /**

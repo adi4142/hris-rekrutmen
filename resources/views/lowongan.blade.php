@@ -234,7 +234,6 @@
     @endif
 @else
     <a href="{{ route('login') }}" class="btn btn-outline">Login</a>
-    <a href="{{ route('register') }}" class="btn btn-primary">Daftar</a>
 @endif
         </div>
     </nav>
@@ -251,11 +250,7 @@
                     <div class="job-content">
                         <div class="job-header">
                             <span class="badge">{{ $vacancy->departement->name ?? 'Umum' }}</span>
-                            <h3 class="job-title">Dibutuhkan {{ $vacancy->title }}</h3>
-                            <div class="job-meta">
-                                <span><i class="fas fa-briefcase"></i> {{ $vacancy->position->name ?? 'Staff' }}</span>
-                                <span><i class="fas fa-clock"></i> Full Time</span>
-                            </div>
+                            <h3 class="job-title">Dibutuhkan {{ $vacancy->title ?? 'Staff' }}</h3>
                         </div>
                         <p class="job-description">
                             {{ Str::limit($vacancy->description, 100) }}

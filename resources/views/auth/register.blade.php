@@ -36,12 +36,12 @@
           @enderror
         </div>
         <div class="input-group mb-3">
-<select name="roles_id" id="roles_id" class="form-control @error('roles_id') is-invalid @enderror" required>
-    <option value="">-- Select Role --</option>
-    @foreach($roles as $role)
-        @if($role->name !== 'karyawan')
-            <option value="{{ $role->roles_id }}">{{ $role->name }}</option>
-        @endif
+          <select name="roles_id" id="roles_id" class="form-control @error('roles_id') is-invalid @enderror" required>
+            <option value="">-- Select Role --</option>
+            @foreach($roles as $role)
+                @if($role->name !== 'karyawan')
+                    <option value="{{ $role->roles_id }}">{{ $role->name }}</option>
+                @endif
     @endforeach
 </select>
 

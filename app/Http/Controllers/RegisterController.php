@@ -7,6 +7,7 @@ use App\User;
 use App\Role;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 
 class RegisterController extends Controller
 {
@@ -30,15 +31,30 @@ class RegisterController extends Controller
             'roles_id' => ['required', 'exists:roles,roles_id'],
         ]);
 
+        $code = strtoupper(substr(md5(rand()), 0, 6));
+
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'roles_id' => $request->roles_id,
+            'verification_code' => $code,
         ]);
+
+        // Kirim Email Verifikasi
+        $role = Role::find($request->roles_id);
+        $roleName = $role->name ?? 'User';
+
+        Mail::to($user->email)->send(new \App\Mail\EmailVerificationMail(
+            $user->name,
+            $roleName,
+            $code
+        ));
+
 
         Auth::login($user);
 
-        return redirect()->route('login')->with('success', 'Registrasi berhasil, silahkan login');
+        return redirect()->route('emails.verify.form')
+            ->with('success', 'Registrasi berhasil! Silakan cek email Anda untuk kode verifikasi.');
     }
 }

@@ -161,7 +161,7 @@
                                 @elseif($application->status == 'rejected')
                                     <span class="badge badge-danger">Ditolak</span>
                                 @else
-                                    <span class="badge badge-secondary">{{ $application->status }}</span>
+                                    <span class="badge badge-info">Seleksi</span>
                                 @endif
                             </td>
                             <td>{{ $application->created_at->format('d M Y') }}</td>

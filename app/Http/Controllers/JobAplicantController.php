@@ -71,9 +71,12 @@ class JobAplicantController extends Controller
 
         }
 
+        // Reuse or create applicant profile
+        $jobApplicant = $user ? $user->tamu : null;
+
         $validationRules = [
             'vacancies_id' => 'required|exists:job_vacancies,vacancies_id',
-            'cv_file' => 'nullable|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120',
+            'cv_file' => ($jobApplicant ? 'nullable' : 'required') . '|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120',
             'cover_letter' => 'nullable|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120',
             'portfolio' => 'nullable|mimes:pdf,doc,docx,jpg,jpeg,png|max:10240',
             'last_diploma' => 'nullable|mimes:pdf,jpg,jpeg,png|max:5120',
@@ -81,9 +84,6 @@ class JobAplicantController extends Controller
             'supporting_certificates' => 'nullable|mimes:pdf,zip,jpg,jpeg,png|max:10240',
             'work_experience' => 'nullable|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120',
         ];
-
-        // Reuse or create applicant profile
-        $jobApplicant = $user ? $user->tamu : null;
 
         if (!$jobApplicant) {
             $validationRules['name'] = 'required';

@@ -6,47 +6,43 @@
         <h3 class="card-title">Edit Pengguna</h3>
     </div>
     <div class="card-body">
-<form action="{{ route('user.update', $user->user_id) }}" method="POST">
+<form action="{{ route('user.update', $edituser->user_id) }}" method="POST">
     {{ csrf_field() }}
     @method('PUT')
-    <div>
-        <label for="name">Nama Pengguna :</label>
-        <br>
-        <input type="text" name="name" value="{{ old('name', $user->name) }}">
+    <div class="form-group">
+        <label for="name">Nama :</label>
+        <input type="text" name="name" class="form-control" value="{{ old('name', $edituser->name) }}" required>
         @if ($errors->has('name'))
         <span class="text-danger">{{ $errors->first('name') }}</span>
         @endif
     </div>
-    <div>
+    <div class="form-group">
         <label for="email">Email :</label>
-        <br>
-        <input type="email" name="email" value="{{ old('email', $user->email) }}">
+        <input type="email" name="email" class="form-control" value="{{ old('email', $edituser->email) }}" required>
         @if ($errors->has('email'))
         <span class="text-danger">{{ $errors->first('email') }}</span>
         @endif
     </div>
-    <div>
+    <div class="form-group">
         <label for="password">Password :</label>
-        <br>
-        <input type="password" name="password">
+        <input type="password" name="password" class="form-control" placeholder="Kosongkan jika tidak ingin mengubah password">
         @if ($errors->has('password'))
         <span class="text-danger">{{ $errors->first('password') }}</span>
         @endif
     </div>
-    <div>
+    <div class="form-group">
         <label for="roles_id">Role :</label>
-        <br>
-        <select name="roles_id">
+        <select name="roles_id" class="form-control" required>
             <option value="">-- Pilih Role --</option>
             @foreach($roles as $rolies)
-            <option value="{{ $rolies->roles_id }}" {{ $user->roles_id == $rolies->roles_id ? 'selected' : '' }}>
+            <option value="{{ $rolies->roles_id }}" {{ $edituser->roles_id == $rolies->roles_id ? 'selected' : '' }}>
                 {{ $rolies->name }}
             </option>
             @endforeach
         </select>
     </div>
-    <button type="submit">Simpan</button>
-    <a href="{{ route('user.index') }}">Kembali</a>
+    <button type="submit" class="btn btn-primary">Simpan</button>
+    <a href="{{ route('user.index') }}" class="btn btn-secondary">Kembali</a>
 </form>
     </div>
 </div>

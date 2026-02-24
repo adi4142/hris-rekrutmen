@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 @section('content')
 
-<div class="card">
+<div class="card card-primary card-outline">
     <div class="card-header">
         <h3 class="card-title">Selection</h3>
         <div class="card-tools">

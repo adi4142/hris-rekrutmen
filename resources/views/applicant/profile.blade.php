@@ -31,10 +31,21 @@
     <div class="col-md-4">
         {{-- Card Foto Profil --}}
         <div class="card card-primary card-outline">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-user"></i> Profil Saya
+                </h3>
+            </div>
+            @php
+                $applicant = $user->applicant;
+                $photo = $applicant && $applicant->photo 
+                    ? asset('storage/' . $applicant->photo) 
+                    : asset('img/user2-160x160.jpg');
+            @endphp
             <div class="card-body box-profile">
                 <div class="text-center">
                     <img class="profile-user-img img-fluid img-circle"
-                         src="{{ asset('AdminLTE/dist/img/user2-160x160.jpg') }}"
+                         src="{{ $photo }}"
                          alt="User profile picture">
                 </div>
                 <h3 class="profile-username text-center">{{ $user->name }}</h3>
@@ -48,6 +59,11 @@
                         <b>Bergabung</b> <a class="float-right">{{ $user->created_at->format('d M Y') }}</a>
                     </li>
                 </ul>
+            </div>
+            <div class="card-footer">
+                <a href="{{ route('applicant.profile.edit') }}" class="btn btn-primary btn-block">
+                    <i class="fas fa-edit"></i> Edit Profil
+                </a>
             </div>
         </div>
     </div>

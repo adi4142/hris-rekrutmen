@@ -9,7 +9,7 @@
         </div>
     </div>
     <div class="card-body">
-<table class="table table-bordered">
+<table class="table table-bordered table-striped">
     <thead>
         <tr>
             <th>Nomor</th>
@@ -24,6 +24,7 @@
             <td>{{ $loop->iteration }}</td>
             <td>{{ $v->name }}</td>
             <td>{{ $v->description }}</td>
+            @if (auth()->user()->role->name !== 'Super Admin')            
             <td>
                 <form action="{{ route('division.destroy', $v->division_id) }}" method="POST" style="display:inline;">
                     {{ csrf_field() }}
@@ -32,6 +33,7 @@
                     <button type="submit" onclick="return confirm('Kamu serius?')" class="btn btn-danger">Hapus</button>
                 </form>
             </td>
+            @endif            
         </tr>
         @endforeach
     </tbody>

@@ -1,0 +1,35 @@
+{
+    "perusahaan": {
+        "company_name": "PT. Rekrutmen Indonesia",
+        "company_email": "hrd@perusahaan.com",
+        "company_phone": "021-12345678",
+        "company_address": "Jl. Contoh No. 1, Jakarta",
+        "company_website": "https://perusahaan.com",
+        "company_tagline": "Solusi Rekrutmen Terpercaya"
+    },
+    "rekrutmen": {
+        "recruitment_default_status": "applied",
+        "recruitment_min_age": "18",
+        "recruitment_max_age": "45",
+        "recruitment_vacancy_duration": "30",
+        "recruitment_max_applicants": "100",
+        "recruitment_auto_close_vacancy": "1",
+        "recruitment_notify_applicant": "1",
+        "recruitment_min_score_pass": "70"
+    },
+    "email": {
+        "mail_host": "smtp.gmail.com",
+        "mail_port": "465",
+        "mail_username": "",
+        "mail_password": "",
+        "mail_encryption": "ssl",
+        "mail_from_address": "",
+        "mail_from_name": "HRD Rekrutmen"
+    },
+    "keamanan": {
+        "license_code_admin": "ADMIN2026XYZ",
+        "license_code_hrd": "HRD2026ABC",
+        "session_lifetime": "120",
+        "max_login_attempts": "5"
+    }
+}

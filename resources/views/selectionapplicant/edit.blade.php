@@ -12,10 +12,10 @@
         @csrf
         @method('PUT')
         <div class="card-body">
-            <div class="form-group">
+            <div class="form-group" hidden >
                 <label for="application_id">Job Applicant</label>
                 <select name="application_id" id="application_id" class="form-control @error('application_id') is-invalid @enderror">
-                    <option value="">-- Select Applicant --</option>
+                    <option value="" disabled>-- Select Applicant --</option>
                     @foreach($jobApplications as $application)
                         <option value="{{ $application->application_id }}" {{ (old('application_id') ?? $selectionApplicant->application_id) == $application->application_id ? 'selected' : '' }}>
                             {{ $application->jobApplicant->name }} - {{ $application->jobVacancie->title }}
@@ -29,7 +29,7 @@
 
             <div class="form-group">
                 <label for="selection_id">Selection Stage</label>
-                <select name="selection_id" id="selection_id" class="form-control @error('selection_id') is-invalid @enderror">
+                <select name="selection_id" id="selection_id" class="form-control @error('selection_id') is-invalid @enderror" >
                     <option value="">-- Select Stage --</option>
                     @foreach($selections as $selection)
                         <option value="{{ $selection->selection_id }}" {{ (old('selection_id') ?? $selectionApplicant->selection_id) == $selection->selection_id ? 'selected' : '' }}>
@@ -50,14 +50,12 @@
                 @enderror
             </div>
 
+
+
             <div class="form-group">
-                <label for="status">Status</label>
-                <select name="status" id="status" class="form-control @error('status') is-invalid @enderror">
-                    <option value="">-- Select Status --</option>
-                    <option value="passed" {{ (old('status') ?? $selectionApplicant->status) == 'passed' ? 'selected' : '' }}>Lulus</option>
-                    <option value="failed" {{ (old('status') ?? $selectionApplicant->status) == 'failed' ? 'selected' : '' }}>Gagal</option>
-                </select>
-                @error('status')
+                <label for="selection_date">Selection Date</label>
+                <input type="date" name="selection_date" id="selection_date" class="form-control @error('selection_date') is-invalid @enderror" value="{{ old('selection_date') ?? $selectionApplicant->selection_date }}">
+                @error('selection_date')
                     <span class="invalid-feedback">{{ $message }}</span>
                 @enderror
             </div>

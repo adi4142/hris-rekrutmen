@@ -47,23 +47,9 @@
             </div>
 
             <div class="form-group">
-                <label for="score">Score</label>
-                <input type="number" name="score" id="score" class="form-control @error('score') is-invalid @enderror" value="{{ old('score') }}" placeholder="Enter score">
-                @error('score')
-                    <span class="invalid-feedback">{{ $message }}</span>
-                @enderror
-            </div>
-
-            <div class="form-group">
-                <label for="status">Status</label>
-                <select name="status" id="status" class="form-control @error('status') is-invalid @enderror">
-                    <option value="">-- Select Status --</option>
-                    <option value="passed" {{ old('status') == 'passed' ? 'selected' : '' }}>Passed</option>
-                    <option value="failed" {{ old('status') == 'failed' ? 'selected' : '' }}>Failed</option>
-                    <option value="process" {{ old('status') == 'process' ? 'selected' : '' }}>Process</option>
-                    <option value="unprocess" {{ old('status') == 'unprocess' ? 'selected' : '' }}>Unprocess</option>
-                </select>
-                @error('status')
+                <label for="selection_date">Selection Date</label>
+                <input type="date" name="selection_date" id="selection_date" class="form-control @error('selection_date') is-invalid @enderror" value="{{ old('selection_date') }}">
+                @error('selection_date')
                     <span class="invalid-feedback">{{ $message }}</span>
                 @enderror
             </div>

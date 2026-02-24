@@ -7,18 +7,20 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\DivisionController;
 use App\Http\Controllers\PositionController;
 use App\Http\Controllers\UsersController;
-use App\Http\Controllers\PayrollController;
-use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\SelectionController;
 use App\Http\Controllers\JobAplicantController;
 use App\Http\Controllers\JobVacancieController;
 use App\Http\Controllers\SelectionApplicantController;
 use App\Http\Controllers\JobApplicationController;
-use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\RegisterController;
+use App\Http\Controllers\RoleVerificationController;
+use App\Http\Controllers\ForgotPasswordController;
+use App\Http\Controllers\EmailVerificationController;
 
 // Import Dashboard Controllers untuk setiap role
+use App\Http\Controllers\SuperAdminDashboardController;
+use App\Http\Controllers\SuperAdminUserController;
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\HrdDashboardController;
 use App\Http\Controllers\ApplicantDashboardController;
@@ -53,6 +55,18 @@ Route::get('/lowongan', function () {
     return view('lowongan', compact('jobVacancies'));
 })->name('lowongan');
 
+// Route fallback untuk storage jika symlink tidak tersedia
+Route::get('/storage/{path}', function ($path) {
+    if (strpos($path, '..') !== false) {
+        abort(404);
+    }
+    $filePath = storage_path('app/public/' . $path);
+    if (!file_exists($filePath)) {
+        abort(404);
+    }
+    return response()->file($filePath);
+})->where('path', '.*');
+
 // ============================================================================
 // AUTHENTICATION ROUTES
 // ============================================================================
@@ -62,20 +76,57 @@ Route::post('/login', [LoginController::class, 'login']);
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
 // Registration Routes
-Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
-Route::post('/register', [RegisterController::class, 'register']);
+// Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
+// Route::post('/register', [RegisterController::class, 'register']);
+
+// ============================================================================
+// ROLE VERIFICATION ROUTES (Untuk Admin & HRD - License Code)
+// ============================================================================
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/role-verify', [RoleVerificationController::class, 'showVerifyForm'])
+        ->name('role.verify.form');
+    Route::post('/role-verify', [RoleVerificationController::class, 'verify'])
+        ->name('role.verify');
+
+    // Email verification after registration
+    Route::get('/email-verify', [EmailVerificationController::class, 'showVerifyForm'])
+        ->name('emails.verify.form');
+    Route::post('/email-verify', [EmailVerificationController::class, 'verify'])
+        ->name('emails.verify');
+    Route::post('/email-verify/resend', [EmailVerificationController::class, 'resend'])
+        ->name('emails.verify.resend');
+});
+
+// ============================================================================
+// FORGOT PASSWORD ROUTES (Tanpa Autentikasi)
+// ============================================================================
+
+Route::get('/forgot-password', [ForgotPasswordController::class, 'showForgotForm'])
+    ->name('password.forgot');
+Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLink'])
+    ->name('password.send.link');
+Route::get('/verify-email-reset', [ForgotPasswordController::class, 'verifyEmail'])
+    ->name('password.verify.email');
+Route::get('/reset-password', [ForgotPasswordController::class, 'showResetForm'])
+    ->name('password.reset.form');
+Route::post('/reset-password', [ForgotPasswordController::class, 'resetPassword'])
+    ->name('password.reset');
 
 // ============================================================================
 // ROUTE REDIRECT DASHBOARD (Mengarahkan ke dashboard sesuai role)
 // ============================================================================
 
 // Route /dashboard akan redirect ke dashboard sesuai role user
-Route::middleware(['auth'])->get('/dashboard', function () {
+Route::middleware(['auth', 'role.verified'])->get('/dashboard', function () {
     $user = auth()->user();
-    $userRole = $user->role ? strtolower($user->role->name) : null;
+    // Ambil nama role user (hilangkan spasi dan lowercase untuk konsistensi)
+    $userRole = $user->role ? str_replace(' ', '', strtolower($user->role->name)) : null;
     
     // Redirect ke dashboard sesuai role
     switch ($userRole) {
+        case 'superadmin':
+            return redirect()->route('superadmin.dashboard');
         case 'admin':
             return redirect()->route('admin.dashboard');
         case 'hrd':
@@ -83,18 +134,42 @@ Route::middleware(['auth'])->get('/dashboard', function () {
         case 'pelamar':
         case 'tamu':
             return redirect()->route('applicant.dashboard');
-        case 'karyawan':
-            return redirect()->route('employee.dashboard');
         default:
             return redirect('/login')->with('error', 'Role tidak dikenal');
     }
 })->name('dashboard');
 
 // ============================================================================
+// SUPER ADMIN ROUTES (Role: super admin)
+// ============================================================================
+
+Route::middleware(['auth', 'role:superadmin', 'role.verified'])->prefix('superadmin')->group(function () {
+    
+    // Dashboard Super Admin
+    Route::get('/dashboard', [SuperAdminDashboardController::class, 'index'])
+        ->name('superadmin.dashboard');
+
+    // User Management
+    Route::get('/users', [SuperAdminUserController::class, 'index'])->name('superadmin.users.index');
+    Route::post('/users', [SuperAdminUserController::class, 'store'])->name('superadmin.users.store');
+    Route::put('/users/{id}', [SuperAdminUserController::class, 'update'])->name('superadmin.users.update');
+    Route::delete('/users/{id}', [SuperAdminUserController::class, 'destroy'])->name('superadmin.users.destroy');
+    Route::post('/users/{id}/reset-password', [SuperAdminUserController::class, 'resetPassword'])->name('superadmin.users.reset-password');
+    Route::post('/users/{id}/toggle-status', [SuperAdminUserController::class, 'toggleStatus'])->name('superadmin.users.toggle-status');
+
+    // System Settings
+    Route::get('/settings', [SuperAdminDashboardController::class, 'settings'])->name('superadmin.settings');
+    Route::post('/settings', [SuperAdminDashboardController::class, 'updateSettings'])->name('superadmin.settings.update');
+
+    // Activity Logs
+    Route::get('/logs', [SuperAdminDashboardController::class, 'logs'])->name('superadmin.logs');
+});
+
+// ============================================================================
 // ADMIN ROUTES (Role: admin)
 // ============================================================================
 
-Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
+Route::middleware(['auth', 'role:admin', 'role.verified'])->prefix('admin')->group(function () {
     
     // Dashboard Admin
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])
@@ -102,7 +177,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
 });
 
 // Routes yang bisa diakses Admin (dengan prefix kosong untuk backward compatibility)
-Route::middleware(['auth', 'role:admin'])->group(function () {
+Route::middleware(['auth', 'role:admin,superadmin', 'role.verified'])->group(function () {
     
     // Role Management
     Route::get('/role', [RoleController::class, 'index'])->name('role.index');
@@ -125,7 +200,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 // HRD ROUTES (Role: hrd)
 // ============================================================================
 
-Route::middleware(['auth', 'role:hrd'])->prefix('hrd')->group(function () {
+Route::middleware(['auth', 'role:hrd', 'role.verified'])->prefix('hrd')->group(function () {
     
     // Dashboard HRD
     Route::get('/dashboard', [HrdDashboardController::class, 'index'])
@@ -136,7 +211,7 @@ Route::middleware(['auth', 'role:hrd'])->prefix('hrd')->group(function () {
 // ADMIN & HRD SHARED ROUTES (Kedua role bisa akses)
 // ============================================================================
 
-Route::middleware(['auth', 'role:admin,hrd'])->group(function () {
+Route::middleware(['auth', 'role:admin,hrd,superadmin', 'role.verified'])->group(function () {
 
     // Division Management
     Route::get('/division', [DivisionController::class, 'index'])->name('division.index');
@@ -162,24 +237,6 @@ Route::middleware(['auth', 'role:admin,hrd'])->group(function () {
     Route::put('/position/{id}', [PositionController::class, 'update'])->name('position.update');
     Route::delete('/position/{id}', [PositionController::class, 'destroy'])->name('position.destroy');
 
-    // Payroll Management
-    Route::get('/payroll', [PayrollController::class, 'index'])->name('payroll.index');
-    Route::get('/payroll/create', [PayrollController::class, 'create'])->name('payroll.create');
-    Route::post('/payroll', [PayrollController::class, 'store'])->name('payroll.store');
-    Route::get('/payroll/{id}', [PayrollController::class, 'show'])->name('payroll.show');
-    Route::get('/payroll/{id}/edit', [PayrollController::class, 'edit'])->name('payroll.edit');
-    Route::put('/payroll/{id}', [PayrollController::class, 'update'])->name('payroll.update');
-    Route::delete('/payroll/{id}', [PayrollController::class, 'destroy'])->name('payroll.destroy');
-
-    // Employee Management
-    Route::get('/employee', [EmployeeController::class, 'index'])->name('employee.index');
-    Route::get('/employee/create', [EmployeeController::class, 'create'])->name('employee.create');
-    Route::post('/employee', [EmployeeController::class, 'store'])->name('employee.store');
-    Route::get('/employee/{nip}/edit', [EmployeeController::class, 'edit'])->name('employee.edit');
-    Route::put('/employee/{nip}', [EmployeeController::class, 'update'])->name('employee.update');
-    Route::delete('/employee/{nip}', [EmployeeController::class, 'destroy'])->name('employee.destroy');
-    Route::get('/get-user-email/{id}', [EmployeeController::class, 'getUserEmail']);
-
     // Selection Management
     Route::get('/selection', [SelectionController::class, 'index'])->name('selection.index');
     Route::get('/selection/create', [SelectionController::class, 'create'])->name('selection.create');
@@ -190,8 +247,6 @@ Route::middleware(['auth', 'role:admin,hrd'])->group(function () {
 
     // Job Applicant Management
     Route::get('/jobapplicant', [JobAplicantController::class, 'index'])->name('jobapplicant.index');
-    Route::get('/jobapplicant/create', [JobAplicantController::class, 'create'])->name('jobapplicant.create');
-    Route::post('/jobapplicant', [JobAplicantController::class, 'store'])->name('jobapplicant.store');
     Route::get('/jobapplicant/{id}/edit', [JobAplicantController::class, 'edit'])->name('jobapplicant.edit');
     Route::put('/jobapplicant/{id}', [JobAplicantController::class, 'update'])->name('jobapplicant.update');
     Route::delete('/jobapplicant/{id}', [JobAplicantController::class, 'destroy'])->name('jobapplicant.destroy');
@@ -213,14 +268,30 @@ Route::middleware(['auth', 'role:admin,hrd'])->group(function () {
     Route::delete('/selectionapplicant/{id}', [SelectionApplicantController::class, 'destroy'])->name('selectionapplicant.destroy');
 
     // Job Application Management
+    // Job Application Management (New Flow)
     Route::get('/jobapplication', [JobApplicationController::class, 'index'])->name('jobapplication.index');
-    Route::put('/jobapplication/{id}', [JobApplicationController::class, 'update'])->name('jobapplication.update');
+    Route::get('/jobapplication/applicant/{applicantId}', [JobApplicationController::class, 'showApplicantDetails'])->name('jobapplication.applicant');
+    Route::get('/jobapplication/{id}', [JobApplicationController::class, 'show'])->name('jobapplication.show');
+    Route::put('/jobapplication/{id}/status', [JobApplicationController::class, 'updateStatus'])->name('jobapplication.updateStatus');
+    
+    // Selection Stages within Job Application
+    Route::post('/jobapplication/{id}/add-selection', [JobApplicationController::class, 'addSelectionStage'])->name('jobapplication.addSelection');
+    Route::put('/jobapplication/selection/{selectionApplicantId}/update', [JobApplicationController::class, 'updateSelectionStage'])->name('jobapplication.updateSelection');
+    Route::delete('/jobapplication/selection/{selectionApplicantId}', [JobApplicationController::class, 'deleteSelectionStage'])->name('jobapplication.deleteSelection');
+    
+    // Email Updates
+    Route::post('/job-applications/{id}/send-email-update', [JobApplicationController::class, 'sendSelectionUpdateEmail'])->name('jobapplication.sendEmailUpdate');
+    
     Route::delete('/jobapplication/{id}', [JobApplicationController::class, 'destroy'])->name('jobapplication.destroy');
+    Route::post('/chat', [\App\Http\Controllers\ChatbotController::class, 'chat'])
+        ->name('hrd.chat');
 
-    // Attendance Management
-    Route::get('/attendance', [AttendanceController::class, 'index'])->name('attendance.index');
-    Route::get('/attendance/scan', [AttendanceController::class, 'scan'])->name('attendance.scan');
-    Route::post('/attendance/store', [AttendanceController::class, 'store'])->name('attendance.store');
+});
+
+// Shared Job Applicant Routes (Accessible by all roles)
+Route::middleware(['auth'])->group(function () {
+    Route::get('/jobapplicant/create', [JobAplicantController::class, 'create'])->name('jobapplicant.create');
+    Route::post('/jobapplicant', [JobAplicantController::class, 'store'])->name('jobapplicant.store');
 });
 
 // ============================================================================
@@ -228,7 +299,9 @@ Route::middleware(['auth', 'role:admin,hrd'])->group(function () {
 // ============================================================================
 
 Route::middleware(['auth', 'role:pelamar,tamu'])->prefix('applicant')->group(function () {
-    
+    Route::get('/jobapplicant/create', [JobAplicantController::class, 'create'])->name('jobapplicant.create');
+    Route::post('/jobapplicant', [JobAplicantController::class, 'store'])->name('jobapplicant.store');
+
     // Dashboard Pelamar
     Route::get('/dashboard', [ApplicantDashboardController::class, 'index'])
         ->name('applicant.dashboard');
@@ -236,6 +309,8 @@ Route::middleware(['auth', 'role:pelamar,tamu'])->prefix('applicant')->group(fun
     // Profil Pelamar
     Route::get('/profile', [ApplicantDashboardController::class, 'profile'])
         ->name('applicant.profile');
+    Route::get('/profile/edit', [ApplicantDashboardController::class, 'editProfile'])
+        ->name('applicant.profile.edit');
     Route::put('/profile', [ApplicantDashboardController::class, 'updateProfile'])
         ->name('applicant.profile.update');
     
@@ -256,19 +331,9 @@ Route::middleware(['auth', 'role:pelamar,tamu'])->prefix('applicant')->group(fun
         ->name('applicant.application.detail');
     
     // Chatbot HR Assistant AI
-    Route::get('/chatbot', [\App\Http\Controllers\ChatbotController::class, 'index'])
-        ->name('applicant.chatbot');
     Route::post('/chat', [\App\Http\Controllers\ChatbotController::class, 'chat'])
         ->name('applicant.chat');
 });
 
-// ============================================================================
-// EMPLOYEE/KARYAWAN ROUTES (Role: karyawan)
-// ============================================================================
 
-Route::middleware(['auth', 'role:karyawan'])->prefix('employee')->group(function () {
-    
-    // Dashboard Karyawan (placeholder - gunakan AttendanceController atau buat baru)
-    Route::get('/dashboard', [AttendanceController::class, 'employeeDashboard'])
-        ->name('employee.dashboard');
-});
+

@@ -5,7 +5,7 @@
 
 @extends('layouts.applicant')
 
-@section('title', 'Detail Lamaran')
+@section('title', 'Detail Ldamaran')
 @section('page_title', 'Detail Lamaran')
 
 @section('content')
@@ -52,43 +52,90 @@
         </div>
 
         {{-- Proses Seleksi --}}
+        {{-- Proses Seleksi --}}
         @if($application->selectionApplicant && $application->selectionApplicant->count() > 0)
         <div class="card card-info card-outline">
             <div class="card-header">
                 <h3 class="card-title">
-                    <i class="fas fa-tasks"></i> Proses Seleksi
+                    <i class="fas fa-tasks"></i> Riwayat Proses Seleksi
                 </h3>
             </div>
-            <div class="card-body p-0">
-                <table class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>Tahap Seleksi</th>
-                            <th>Skor</th>
-                            <th>Status</th>
-                            <th>Catatan</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($application->selectionApplicant as $selection)
-                        <tr>
-                            <td>{{ $selection->selection->name ?? '-' }}</td>
-                            <td>{{ $selection->score ?? '-' }}</td>
-                            <td>
-                                @if($selection->status == 'passed')
-                                    <span class="badge badge-success">Lulus</span>
-                                @elseif($selection->status == 'failed')
-                                    <span class="badge badge-danger">Tidak Lulus</span>
-                                @else
-                                    <span class="badge badge-warning">Pending</span>
-                                @endif
-                            </td>
-                            <td>{{ $selection->notes ?? '-' }}</td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+            <div class="card-body">
+                <div class="timeline">
+                    @foreach($application->selectionApplicant as $selection)
+                        @php
+                            $bgClass = 'bg-gray';
+                            $icon = 'fa-clock';
+                            if($selection->status == 'passed') {
+                                $bgClass = 'bg-success';
+                                $icon = 'fa-check';
+                            } elseif($selection->status == 'failed') {
+                                $bgClass = 'bg-danger';
+                                $icon = 'fa-times';
+                            } elseif($selection->status == 'process') {
+                                $bgClass = 'bg-primary';
+                                $icon = 'fa-spinner fa-spin';
+                            } elseif($selection->status == 'unprocess') {
+                                $bgClass = 'bg-warning';
+                                $icon = 'fa-hourglass-start';
+                            }
+                        @endphp
+
+                        <!-- timeline time label -->
+                        <div class="time-label">
+                            <span class="{{ $bgClass }}">
+                                {{ $selection->selection_date ? \Carbon\Carbon::parse($selection->selection_date)->translatedFormat('d F Y') : 'Jadwal Menyusul' }}
+                            </span>
+                        </div>
+                        
+                        <div>
+                            <i class="fas {{ $icon }} {{ $bgClass }}"></i>
+                            <div class="timeline-item">
+                                <span class="time"><i class="far fa-clock"></i> {{ $selection->updated_at->diffForHumans() }}</span>
+                                <h3 class="timeline-header">
+                                    <strong>{{ $selection->selection->name ?? 'Tahapan Seleksi' }}</strong>
+                                </h3>
+
+                                <div class="timeline-body">
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <strong>Status:</strong>
+                                            @if($selection->status == 'passed')
+                                                <span class="badge badge-success">Lulus</span>
+                                            @elseif($selection->status == 'failed')
+                                                <span class="badge badge-danger">Tidak Lulus</span>
+                                            @elseif($selection->status == 'process')
+                                                <span class="badge badge-primary">Sedang Berlangsung</span>
+                                            @else
+                                                <span class="badge badge-warning">Belum Diproses</span>
+                                            @endif
+                                        </div>
+                                        @if($selection->status == 'passed' || $selection->status == 'failed')
+                                            <div class="col-sm-6">
+                                                <strong>Skor:</strong> {{ $selection->score > 0 ? $selection->score : '-' }}
+                                            </div>
+                                        @endif
+                                    </div>
+                                    @if($selection->notes && ($selection->status == 'passed' || $selection->status == 'failed'))
+                                        <div class="mt-2 p-2 bg-light rounded border">
+                                            <strong>Catatan:</strong><br>
+                                            {{ $selection->notes }}
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                    <div>
+                        <i class="far fa-clock bg-gray"></i>
+                    </div>
+                </div>
             </div>
+        </div>
+        @else
+        <div class="alert alert-info">
+            <h5><i class="icon fas fa-info"></i> Belum Ada Jadwal Seleksi</h5>
+            Saat ini belum ada tahapan seleksi yang dijadwalkan untuk lamaran Anda. Mohon menunggu informasi selanjutnya.
         </div>
         @endif
     </div>
@@ -122,6 +169,13 @@
                     </span>
                     <p class="mt-3 text-muted">
                         Mohon maaf, lamaran Anda tidak dapat kami proses lebih lanjut.
+                    </p>
+                @elseif($application->status == 'process')
+                    <span class="badge badge-primary" style="font-size: 1.5rem; padding: 15px 30px;">
+                        <i class="fas fa-spinner fa-spin"></i> Dalam Proses
+                    </span>
+                    <p class="mt-3 text-muted">
+                        Lamaran Anda sedang dalam proses seleksi oleh tim HRD.
                     </p>
                 @endif
 

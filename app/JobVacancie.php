@@ -16,6 +16,7 @@ class JobVacancie extends Model
         'position_id',
         'description',
         'requirements',
+        'required_documents',
         'status',
     ];
 

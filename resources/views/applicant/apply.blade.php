@@ -129,27 +129,76 @@
                         <i class="fas fa-history"></i> Lihat Riwayat Lamaran
                     </a>
                 @else
+                    @php
+                        $requiredDocs = json_decode($vacancy->required_documents) ?? [];
+                    @endphp
                     <div class="mb-3">
-                        <p><strong>Data yang akan dikirim:</strong></p>
+                        <p><strong>Data Profil:</strong></p>
                         <ul class="list-unstyled">
                             <li><i class="fas fa-user"></i> {{ $applicant->name }}</li>
                             <li><i class="fas fa-envelope"></i> {{ $applicant->email }}</li>
                             <li><i class="fas fa-phone"></i> {{ $applicant->phone }}</li>
-                            @if($applicant->cv_file)
-                            <li><i class="fas fa-file-pdf text-success"></i> CV sudah diupload</li>
-                            @else
-                            <li><i class="fas fa-file-pdf text-danger"></i> CV belum diupload</li>
-                            @endif
                         </ul>
                     </div>
 
-                    <form action="{{ route('applicant.apply.submit', $vacancy->vacancies_id) }}" method="POST">
+                    <form action="{{ route('applicant.apply.submit', $vacancy->vacancies_id) }}" method="POST" enctype="multipart/form-data">
                         @csrf
+                        
+                        <div class="form-group mb-4">
+                            <label class="text-primary"><i class="fas fa-file-upload"></i> Dokumen Yang Diperlukan</label>
+                            <small class="d-block text-muted mb-2">* Wajib diisi sesuai permintaan lowongan ini.</small>
+                            
+                            @if(count($requiredDocs) > 0)
+                                @foreach($requiredDocs as $docName)
+                                    <div class="mb-3">
+                                        <label for="req_doc_{{ $loop->index }}">{{ $docName }}</label>
+                                        <input type="file" name="required_files[{{ $docName }}]" id="req_doc_{{ $loop->index }}" class="form-control-file @error('required_files.'.$docName) is-invalid @enderror btn btn-primary" required>
+                                        @error('required_files.'.$docName)
+                                            <span class="text-danger small">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+                                @endforeach
+                            @else
+                                <p class="text-muted small">Tidak ada dokumen khusus yang diwajibkan.</p>
+                            @endif
+                        </div>
+
+                        <hr>
+
+                        <div class="form-group mb-4">
+                            <label class="text-info"><i class="fas fa-folder-plus"></i> Dokumen Tambahan (Opsional)</label>
+                            <div id="additional-docs-container">
+                                {{-- Dynamically added fields --}}
+                            </div>
+                            <button type="button" class="btn btn-outline-info btn-xs mt-2" onclick="addDocField()">
+                                <i class="fas fa-plus"></i> Tambah Dokumen Lainnya
+                            </button>
+                        </div>
                         <button type="submit" class="btn btn-success btn-block" 
                                 onclick="return confirm('Apakah Anda yakin ingin melamar posisi ini?')">
                             <i class="fas fa-paper-plane"></i> Kirim Lamaran
                         </button>
                     </form>
+
+                    <script>
+                        function addDocField() {
+                            const container = document.getElementById('additional-docs-container');
+                            const newItem = document.createElement('div');
+                            newItem.className = 'additional-doc-item mb-2';
+                            newItem.innerHTML = `
+                                <div class="input-group">
+                                    <input type="text" name="additional_doc_names[]" class="form-control form-control-sm" placeholder="Nama Dokumen">
+                                    <input type="file" name="additional_files[]" class="form-control-file ml-2" style="width: auto;">
+                                    <div class="input-group-append">
+                                        <button type="button" class="btn btn-danger btn-sm" onclick="this.closest('.additional-doc-item').remove()">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+                            container.appendChild(newItem);
+                        }
+                    </script>
                 @endif
             </div>
             <div class="card-footer">

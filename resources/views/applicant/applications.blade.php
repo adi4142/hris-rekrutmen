@@ -43,7 +43,7 @@
                     <tbody>
                         @forelse($applications as $index => $application)
                         <tr>
-                            <td>{{ $applications->firstItem() + $index }}</td>
+                            <td>{{ method_exists($applications, 'firstItem') ? $applications->firstItem() + $index : $index + 1 }}</td>
                             <td>
                                 <strong>{{ $application->jobVacancie->title ?? 'Posisi tidak tersedia' }}</strong>
                                 <br>
@@ -91,7 +91,7 @@
                     </tbody>
                 </table>
             </div>
-            @if($applications->hasPages())
+            @if(method_exists($applications, 'hasPages') && $applications->hasPages())
             <div class="card-footer">
                 {{ $applications->links() }}
             </div>

@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\User;
 use App\Role;
+use Illuminate\Support\Str;
+use App\ActivityLog;
 
 class UsersController extends Controller
 {
@@ -27,7 +29,8 @@ class UsersController extends Controller
     public function create()
     {
         $roles = Role::all();
-        return view('user.create', compact('roles'));
+        $generatedPassword = Str::random(12);
+        return view('user.create', compact('roles', 'generatedPassword'));
     }
 
     /**
@@ -39,18 +42,23 @@ class UsersController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-        'name'=>'required|string|max:255|unique:users',
-        'email'=>'required|string|email|max:255|unique:users',
-        'password'=>'required|string|min:8',
-        'roles_id'=>'required',]);
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:8',
+            'roles_id' => 'required|exists:roles,roles_id',
+        ]);
 
-        User::create([
-        'name'=>$request->name,
-        'email'=>$request->email,
-        'password'=>bcrypt($request->password),
-        'roles_id'=>$request->roles_id,]);
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => bcrypt($request->password),
+            'roles_id' => $request->roles_id,
+            'is_role_verified' => 1, // Auto verify for admin-created accounts
+        ]);
 
-        return redirect()->route('user.index');
+        ActivityLog::log('Membuat user baru: ' . $user->name, 'User Management');
+
+        return redirect()->route('user.index')->with('success', 'User berhasil dibuat.');
     }
 
     /**
@@ -87,18 +95,23 @@ class UsersController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-        'name'=>'required|string|max:255|unique:users,name,'.$id.',user_id',
-        'email'=>'required|string|email|max:255|unique:users,email,'.$id.',user_id',
-        'password'=>'nullable|string|min:8',
-        'roles_id'=>'required|exists:roles,roles_id',]);
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users,email,'.$id.',user_id',
+            'password' => 'nullable|string|min:8',
+            'roles_id' => 'required|exists:roles,roles_id',
+        ]);
 
         $user = User::findOrFail($id);
         $user->update([
-        'name'=>$request->name,
-        'email'=>$request->email,
-        'password'=>$request->password ? bcrypt($request->password) : $user->password,
-        'roles_id'=>$request->roles_id,]);
-        return redirect()->route('user.index');
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => $request->password ? bcrypt($request->password) : $user->password,
+            'roles_id' => $request->roles_id,
+        ]);
+
+        ActivityLog::log('Memperbarui data user: ' . $user->name, 'User Management');
+
+        return redirect()->route('user.index')->with('success', 'User berhasil diperbarui.');
     }
 
     /**
@@ -109,7 +122,12 @@ class UsersController extends Controller
      */
     public function destroy($id)
     {
-        User::where('user_id', $id)->delete();
+        $user = User::findOrFail($id);
+        $name = $user->name;
+        $user->delete();
+
+        ActivityLog::log('Menghapus user: ' . $name, 'User Management');
+
         return redirect()->route('user.index');
     }
 }

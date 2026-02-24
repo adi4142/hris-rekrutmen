@@ -57,16 +57,20 @@ class SelectionApplicantController extends Controller
             'application_id' => 'required',
             'score' => 'nullable|numeric',
             'notes' => 'nullable|string',
-            'status' => 'required|in:passed,failed,process,unprocess',
+            'selection_date' => 'nullable|date',
         ]);
 
-        SelectionApplicant::create([
+        $selectionApplicant = SelectionApplicant::create([
             'selection_id' => $request->selection_id,
             'application_id' => $request->application_id,
             'score' => $request->score ?? 0,
             'notes' => $request->notes ?? '-',
-            'status' => $request->status,
+            'status' => 'unprocess',
+            'selection_date' => $request->selection_date,
         ]);
+
+        // Kirim notifikasi email ke pelamar
+        $this->sendNotificationEmail($selectionApplicant);
 
         return redirect()->route('selectionapplicant.index')->with('success', 'Tahapan seleksi berhasil ditambahkan');
     }
@@ -105,24 +109,30 @@ class SelectionApplicantController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $request->validate([
-            'selection_id' => 'required',
-            'application_id' => 'required',
-            'score' => 'required',
-            'notes' => 'required',
-            'status' => 'required|in:passed,failed,process,unprocess',
-        ]);
-
         $selectionApplicant = SelectionApplicant::findOrFail($id);
-        $selectionApplicant->update([
-            'selection_id' => $request->selection_id,
-            'application_id' => $request->application_id,
-            'score' => $request->score,
-            'notes' => $request->notes,
-            'status' => $request->status,
+
+        $request->validate([
+            'selection_id' => 'sometimes|required',
+            'application_id' => 'sometimes|required',
+            'score' => 'sometimes|required',
+            'notes' => 'sometimes|required',
+            'status' => 'nullable|in:passed,failed,process,unprocess',
+            'selection_date' => 'nullable|date',
         ]);
 
-        return redirect()->route('selectionapplicant.index');
+        $selectionApplicant->update([
+            'selection_id' => $request->selection_id ?? $selectionApplicant->selection_id,
+            'application_id' => $request->application_id ?? $selectionApplicant->application_id,
+            'score' => $request->score ?? $selectionApplicant->score,
+            'notes' => $request->notes ?? $selectionApplicant->notes,
+            'status' => $request->status ?? $selectionApplicant->status,
+            'selection_date' => $request->selection_date ?? $selectionApplicant->selection_date,
+        ]);
+
+        // Kirim notifikasi email ke pelamar
+        $this->sendNotificationEmail($selectionApplicant);
+        
+        return redirect()->route('selectionapplicant.index')->with('success', 'Data berhasil diperbarui');
     }
 
     /**
@@ -136,5 +146,29 @@ class SelectionApplicantController extends Controller
         $selectionApplicant = SelectionApplicant::findOrFail($id);
         $selectionApplicant->delete();
         return redirect()->route('selectionapplicant.index');
+    }
+
+    private function sendNotificationEmail($selectionApplicant)
+    {
+        try {
+            $application = $selectionApplicant->jobapplication;
+            $applicant = $application->jobApplicant;
+            $user = $applicant->user ?? null;
+            $email = $user ? $user->email : $applicant->email;
+
+            if ($email) {
+                \Illuminate\Support\Facades\Mail::to($email)->send(new \App\Mail\SelectionStatusUpdatedMail(
+                    $applicant->name,
+                    $application->jobVacancie->title,
+                    $selectionApplicant->selection->name,
+                    $selectionApplicant->status,
+                    $selectionApplicant->selection_date,
+                    $selectionApplicant->notes
+                ));
+            }
+        } catch (\Exception $e) {
+            // Log error or ignore if email fails, to not break the flow
+            \Illuminate\Support\Facades\Log::error('Failed to send selection update email: ' . $e->getMessage());
+        }
     }
 }

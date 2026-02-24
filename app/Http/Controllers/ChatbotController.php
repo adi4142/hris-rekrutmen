@@ -9,8 +9,6 @@ use App\JobVacancie;
 use App\JobApplication;
 use App\JobApplicant;
 use App\Selection;
-use App\Employee;
-use App\Attendance;
 
 /**
  * ChatbotController
@@ -166,7 +164,6 @@ class ChatbotController extends Controller
             'pending_applications' => JobApplication::where('status', 'pending')->count(),
             'accepted_applications' => JobApplication::where('status', 'accepted')->count(),
             'rejected_applications' => JobApplication::where('status', 'rejected')->count(),
-            'total_employees' => Employee::count(),
         ];
         
         // Lamaran terbaru pending
@@ -350,10 +347,9 @@ class ChatbotController extends Controller
     1. Selalu jawab dalam Bahasa Indonesia
     2. Berikan informasi yang akurat berdasarkan data konteks
     3. Jika pelamar belum punya profil, sarankan untuk melengkapi profil
-    4. Berikan motivasi dan dukungan kepada pelamar
-    5. Untuk pertanyaan di luar konteks rekrutmen, redirect dengan sopan
-    6. Jangan membuat janji yang tidak bisa dipenuhi (misal: "pasti diterima")
-    7. Format jawaban dengan jelas dan mudah dibaca
+    4. Untuk pertanyaan di luar konteks rekrutmen, redirect dengan sopan
+    5. Jangan membuat janji yang tidak bisa dipenuhi (misal: "pasti diterima")
+    6. Format jawaban dengan jelas dan mudah dibaca
 
     Nama user saat ini: {$user->name}
     PROMPT;
@@ -412,7 +408,7 @@ class ChatbotController extends Controller
             $statusEmoji = [
                 'pending' => '⏳',
                 'accepted' => '🎉',
-                'rejected' => '',
+                'rejected' => '☠️',
                 'process' => '🔄',
             ];
             $emoji = $statusEmoji[$app['status']] ?? '📋';
@@ -471,8 +467,7 @@ class ChatbotController extends Controller
                    "• Lowongan Aktif: <b>{$stats['total_vacancies']}</b><br>" .
                    "• Lamaran Pending: <b>{$stats['pending_applications']}</b><br>" .
                    "• Diterima: <b>{$stats['accepted_applications']}</b><br>" .
-                   "• Ditolak: <b>{$stats['rejected_applications']}</b><br>" .
-                   "• Total Karyawan: <b>{$stats['total_employees']}</b>";
+                   "• Ditolak: <b>{$stats['rejected_applications']}</b>";
         }
         
         // --- DEFAULT ---

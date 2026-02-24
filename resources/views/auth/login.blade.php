@@ -7,20 +7,20 @@
   <div class="card card-outline card-primary">
     <div class="card-header text-center">
       <a href="/" class="h1"><b>HRIS</b> System</a>
+
     </div>
     <div class="card-body">
       <p class="login-box-msg">Sign in to start your session</p>
-
       <form action="{{ route('login') }}" method="POST">
         @csrf
         <div class="input-group mb-3">
-          <input type="email" name="email" class="form-control @error('email') is-invalid @enderror" placeholder="Email" value="{{ old('email') }}" required autofocus>
+          <input type="text" name="name" class="form-control @error('name') is-invalid @enderror" placeholder="Name" value="{{ old('name') }}" required autofocus>
           <div class="input-group-append">
             <div class="input-group-text">
-              <span class="fas fa-envelope"></span>
+              <span class="fas fa-user"></span>
             </div>
           </div>
-          @error('email')
+          @error('name')
               <span class="invalid-feedback" role="alert">
                   <strong>{{ $message }}</strong>
               </span>
@@ -50,17 +50,24 @@
           </div>
           <!-- /.col -->
           <div class="col-4">
-            <button type="submit" class="btn btn-block btn-primary">Sign In</button>
+            <button type="submit" class="btn btn-block btn-primary">Masuk</button> 
+          </div>
+          <div class="col-4">
+            <a href="/" class="btn btn-block btn-secondary btn-sm">Kembali</a>
           </div>
           <!-- /.col -->
-        </div>
+        </div>          
       </form>
 
+      @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+          <i class="fas fa-check-circle mr-1"></i> {{ session('success') }}
+          <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+        </div>
+      @endif
+
       <p class="mb-1 mt-3">
-        <a href="#">I forgot my password</a>
-      </p>
-      <p class="mb-0">
-        <a href="{{ route('register') }}" class="text-center">Register a new membership</a>
+        <a href="{{ route('password.forgot') }}">Lupa Password</a>
       </p>
     </div>
     <!-- /.card-body -->

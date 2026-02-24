@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\JobVacancie;
 use App\Departement;
 use App\Position;
+use App\ActivityLog;
 
 class JobVacancieController extends Controller
 {
@@ -45,6 +46,7 @@ class JobVacancieController extends Controller
             'position_id' => 'required|exists:positions,position_id',
             'description' => 'nullable',
             'requirements' => 'nullable',
+            'required_documents' => 'nullable|array',
             'status' => 'required|in:open,closed',
         ]);
 
@@ -56,8 +58,12 @@ class JobVacancieController extends Controller
             'position_id' => $request->position_id,
             'description' => $request->description,
             'requirements' => $request->requirements,
+            'required_documents' => $request->required_documents ? json_encode($request->required_documents) : null,
             'status' => $request->status,
         ]);
+
+        ActivityLog::log('Membuat lowongan baru: ' . $position->name, 'Lowongan Kerja');
+
         return redirect()->route('jobvacancie.index');
     }
 
@@ -100,6 +106,7 @@ class JobVacancieController extends Controller
             'position_id' => 'required|exists:positions,position_id',
             'description' => 'nullable',
             'requirements' => 'nullable',
+            'required_documents' => 'nullable|array',
             'status' => 'required|in:open,closed',
         ]);
 
@@ -112,8 +119,12 @@ class JobVacancieController extends Controller
             'position_id' => $request->position_id,
             'description' => $request->description,
             'requirements' => $request->requirements,
+            'required_documents' => $request->required_documents ? json_encode($request->required_documents) : null,
             'status' => $request->status,
         ]);
+
+        ActivityLog::log('Memperbarui lowongan: ' . $position->name, 'Lowongan Kerja');
+
         return redirect()->route('jobvacancie.index');
     }
 
@@ -126,7 +137,11 @@ class JobVacancieController extends Controller
     public function destroy($id)
     {
         $deleteJobVacancie = JobVacancie::findOrFail($id);
+        $title = $deleteJobVacancie->title;
         $deleteJobVacancie->delete();
+
+        ActivityLog::log('Menghapus lowongan: ' . $title, 'Lowongan Kerja');
+
         return redirect()->route('jobvacancie.index');
     }
 }

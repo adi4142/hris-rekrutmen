@@ -14,6 +14,11 @@ class JobApplication extends Model
         'vacancies_id',
         'job_applicant_id',
         'status',
+        'documents',
+    ];
+
+    protected $casts = [
+        'documents' => 'array',
     ];
 
     

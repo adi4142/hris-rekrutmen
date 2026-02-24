@@ -32,11 +32,16 @@ class CheckRole
         // Ambil user yang sedang login
         $user = auth()->user();
         
-        // Ambil nama role user (lowercase untuk konsistensi)
-        $userRole = $user->role ? strtolower($user->role->name) : null;
+        // Ambil nama role user (hilangkan spasi dan lowercase untuk konsistensi)
+        $userRole = $user->role ? str_replace(' ', '', strtolower($user->role->name)) : null;
 
         // Jika role user ada dalam daftar role yang diizinkan, lanjutkan request
-        if (in_array($userRole, $roles)) {
+        // Kita juga bersihkan spasi di daftar role yang diizinkan
+        $normalizedRoles = array_map(function($r) {
+            return str_replace(' ', '', strtolower($r));
+        }, $roles);
+
+        if (in_array($userRole, $normalizedRoles)) {
             return $next($request);
         }
         
@@ -56,11 +61,9 @@ class CheckRole
     {
         // Definisikan mapping role ke route dashboard
         $dashboardRoutes = [
-            'admin' => 'admin.dashboard',
+            'superadmin' => 'superadmin.dashboard',
             'hrd' => 'hrd.dashboard',
-            'pelamar' => 'applicant.dashboard',
             'tamu' => 'applicant.dashboard',
-            'karyawan' => 'employee.dashboard',
         ];
 
         // Cek apakah user sudah berada di dashboard yang sesuai
