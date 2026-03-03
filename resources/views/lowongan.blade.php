@@ -131,86 +131,86 @@
         /* Job Grid */
         .job-container {
             padding: 50px 8%;
+            max-width: 1200px;
+            margin: 0 auto;
         }
-
         .job-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 30px;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 24px;
         }
-
         .job-card {
             background: var(--white);
-            border-radius: 20px;
-            padding: 30px;
-            transition: 0.3s;
-            border: 1px solid rgba(0,0,0,0.05);
+            border-radius: 12px;
+            padding: 24px;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid #e5e7eb;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            height: 100%;
         }
-
         .job-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 30px rgba(0,0,0,0.08);
+            border-color: var(--primary);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            transform: translateY(-4px);
         }
-
-        .job-header {
-            margin-bottom: 20px;
-        }
-
-        .job-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: 10px;
-            color: var(--dark);
-        }
-
-        .job-meta {
+        .job-card-header {
             display: flex;
-            gap: 15px;
-            color: #6b7280;
-            font-size: 0.9rem;
-            margin-bottom: 15px;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
         }
-
-        .job-meta i {
-            color: var(--primary);
-            margin-right: 5px;
+        .job-card-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #111827;
+            margin: 0;
+            flex: 1;
         }
-
-        .job-description {
-            color: #4b5563;
+        .job-card-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
             margin-bottom: 20px;
-            line-height: 1.6;
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
         }
-
-        .badge {
-            padding: 5px 10px;
-            border-radius: 50px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            background: rgba(43, 177, 255, 0.1);
+        .job-card-badge {
+            background: #f3f4f6;
+            color: #4b5563;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        .job-card-footer {
+            margin-top: auto;
+            padding-top: 16px;
+            border-top: 1px solid #f3f4f6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .job-card-date {
+            color: #9ca3af;
+            font-size: 0.875rem;
+        }
+        .job-card-applied {
             color: var(--primary);
+            font-size: 1rem;
         }
 
         /* Footer */
         footer {
             background: var(--dark);
             color: var(--white);
-            padding: 60px 8% 30px;
-            margin-top: 50px;
+            padding: 40px 8%;
+            margin-top: 80px;
         }
-
         .footer-bottom {
-            padding-top: 30px;
-            border-top: 1px solid rgba(255,255,255,0.1);
             text-align: center;
-            color: #6b7280;
+            color: #9ca3af;
             font-size: 0.9rem;
         }
     </style>
@@ -246,26 +246,37 @@
     <section class="job-container">
         <div class="job-grid">
             @forelse($jobVacancies as $vacancy)
-                <div class="job-card">
-                    <div class="job-content">
-                        <div class="job-header">
-                            <span class="badge">{{ $vacancy->departement->name ?? 'Umum' }}</span>
-                            <h3 class="job-title">Dibutuhkan {{ $vacancy->title ?? 'Staff' }}</h3>
+                <a href="{{ route('lowongan.detail', $vacancy->vacancies_id) }}" class="job-card">
+                    <div>
+                        <div class="job-card-header">
+                            <h3 class="job-card-title">{{ $vacancy->title ?? 'Staff' }}</h3>
+                            <span style="color: var(--primary); font-weight: 600; font-size: 0.875rem;">Open</span>
                         </div>
-                        <p class="job-description">
-                            {{ Str::limit($vacancy->description, 100) }}
-                        </p>
-                        <p class="job-requirements">
-                            {{ Str::limit($vacancy->requirements, 100) }}
-                        </p>
+                        
+                        <div class="job-card-badges">
+                            @php
+                                $reqs = json_decode($vacancy->requirements, true);
+                            @endphp
+                            @if(is_array($reqs))
+                                @foreach(array_slice($reqs, 0, 4) as $req)
+                                    <span class="job-card-badge">{{ Str::limit($req, 20) }}</span>
+                                @endforeach
+                                @if(count($reqs) > 4)
+                                    <span class="job-card-badge">+{{ count($reqs) - 4 }}</span>
+                                @endif
+                            @else
+                                <span class="job-card-badge">{{ Str::limit($vacancy->requirements, 20) }}</span>
+                            @endif
+                        </div>
                     </div>
                     
-                    <div style="margin-top: 20px;">
-                        <a href="{{ route('jobapplicant.create', ['vacancies_id' => $vacancy->vacancies_id]) }}" class="btn btn-primary" style="width: 100%; text-align: center;">
-                            Lamar Sekarang <i class="fas fa-arrow-right" style="margin-left: 5px;"></i>
-                        </a>
+                    <div class="job-card-footer">
+                        <span class="job-card-date">
+                            <i class="far fa-calendar-alt"></i> {{ $vacancy->created_at ? $vacancy->created_at->diffForHumans() : 'Baru' }}
+                        </span>
+                        <i class="far fa-bookmark job-card-applied"></i>
                     </div>
-                </div>
+                </a>
             @empty
                 <div class="col-12" style="text-align: center; grid-column: 1/-1; padding: 50px;">
                     <img src="{{ asset('AdminLTE/dist/img/empty.svg') }}" alt="No Data" style="max-width: 200px; margin-bottom: 20px; opacity: 0.5;">

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Departement;
+use App\ActivityLog;
 
 class DepartementController extends Controller
 {
@@ -43,6 +44,8 @@ class DepartementController extends Controller
         Departement::create([
         'name'=>$request->name,
         'description'=>$request->description]);
+
+        ActivityLog::log('Menambah departemen baru: ' . $request->name, 'Master Data');
 
         return redirect()->route('departement.index');
     }
@@ -88,6 +91,8 @@ class DepartementController extends Controller
         'name'=>$request->name,
         'description'=>$request->description]);
 
+        ActivityLog::log('Memperbarui departemen: ' . $departement->name, 'Master Data');
+
         return redirect()->route('departement.index');
     }
 
@@ -99,7 +104,11 @@ class DepartementController extends Controller
      */
     public function destroy($id)
     {
-        Departement::where('departement_id', $id)->delete();
+        $departement = Departement::findOrFail($id);
+        $name = $departement->name;
+        $departement->delete();
+
+        ActivityLog::log('Menghapus departemen: ' . $name, 'Master Data');
         return redirect()->route('departement.index');
     }
 }

@@ -6,6 +6,7 @@
   <link rel="icon" type="image/png" href="{{ asset('AdminLTE/dist/img/vneu.avif') }}" />
   <title>{{ config('app.name', 'HRIS') }} | @yield('title')</title>
 
+
   <!-- Google Font: Source Sans Pro -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
   <!-- Font Awesome -->
@@ -25,9 +26,25 @@
     }
   </style>
 </head>
+
 <body class="hold-transition login-page">
 
-@yield('content')
+  <div class="card card-outline @yield('card-class')">
+    <div class="card-header text-center">
+      <span class="h1"><b>@yield('title')</b></span>
+    <div class="card-tools d-flex justify-content-between align-items-center">
+        <a href="javascript:history.back()" 
+           class="btn btn-light btn-sm">
+           <i class="fas fa-arrow-left"></i>
+        </a>
+    </div>
+    </div>
+    <div class="card-body">
+      @yield('content')
+    </div>
+
+  </div>
+</div>
 
 <!-- jQuery -->
 <script src="{{ asset('AdminLTE/plugins/jquery/jquery.min.js') }}"></script>

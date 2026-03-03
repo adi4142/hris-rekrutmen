@@ -15,6 +15,7 @@ class JobVacancie extends Model
         'departement_id',
         'position_id',
         'description',
+        'expired_at',
         'requirements',
         'required_documents',
         'status',

@@ -1,14 +1,14 @@
 {
     "perusahaan": {
-        "company_name": "PT. Rekrutmen Indonesia",
+        "company_name": "PT. Vneu Teknologi Indonesia",
         "company_email": "hrd@perusahaan.com",
         "company_phone": "021-12345678",
-        "company_address": "Jl. Contoh No. 1, Jakarta",
+        "company_address": "Jl.Kebayoran Lama",
         "company_website": "https://perusahaan.com",
         "company_tagline": "Solusi Rekrutmen Terpercaya"
     },
     "rekrutmen": {
-        "recruitment_default_status": "applied",
+        "recruitment_default_status": "pending",
         "recruitment_min_age": "18",
         "recruitment_max_age": "45",
         "recruitment_vacancy_duration": "30",
@@ -20,10 +20,10 @@
     "email": {
         "mail_host": "smtp.gmail.com",
         "mail_port": "465",
-        "mail_username": "",
-        "mail_password": "",
+        "mail_username": "junayusup67@gmail.com",
+        "mail_password": "iwbyfsrkcnwdebuf",
         "mail_encryption": "ssl",
-        "mail_from_address": "",
+        "mail_from_address": "junayusup67@gmail.com",
         "mail_from_name": "HRD Rekrutmen"
     },
     "keamanan": {

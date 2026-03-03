@@ -90,8 +90,19 @@
 
                 @if($vacancy->requirements)
                 <h5><i class="fas fa-list-ul"></i> Persyaratan</h5>
-                <div class="mb-4">
-                    {!! nl2br(e($vacancy->requirements)) !!}
+                <div class="mb-4 d-flex">
+                    @php
+                        $reqs = json_decode($vacancy->requirements, true);
+                    @endphp
+                    @if(is_array($reqs))
+                        <ul>
+                            @foreach($reqs as $req)
+                                <li>{{ $req }}</li>
+                            @endforeach
+                        </ul>
+                    @else
+                        {!! nl2br(e($vacancy->requirements)) !!}
+                    @endif
                 </div>
                 @endif
             </div>

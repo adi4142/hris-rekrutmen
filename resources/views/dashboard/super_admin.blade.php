@@ -5,24 +5,9 @@
 
 @section('content')
 <div class="row">
-    {{-- Card Total User --}}
-    <div class="col-lg-3 col-6">
-        <div class="small-box bg-dark">
-            <div class="inner">
-                <h3>{{ $stats['total_users'] }}</h3>
-                <p>Total User & Role</p>
-            </div>
-            <div class="icon">
-                <i class="fas fa-users-cog"></i>
-            </div>
-            <a href="{{ route('superadmin.users.index') }}" class="small-box-footer">
-                Kelola User <i class="fas fa-arrow-circle-right"></i>
-            </a>
-        </div>
-    </div>
 
     {{-- Card Total Lowongan --}}
-    <div class="col-lg-3 col-6">
+    <div class="col-lg-4 col-6">
         <div class="small-box bg-primary">
             <div class="inner">
                 <h3>{{ $stats['total_vacancies'] }}</h3>
@@ -36,7 +21,7 @@
     </div>
 
     {{-- Card Total Pelamar --}}
-    <div class="col-lg-3 col-6">
+    <div class="col-lg-4 col-6">
         <div class="small-box bg-success">
             <div class="inner">
                 <h3>{{ $stats['total_applicants'] }}</h3>
@@ -50,7 +35,7 @@
     </div>
 
     {{-- Card Total Lamaran --}}
-    <div class="col-lg-3 col-6">
+    <div class="col-lg-4 col-6">
         <div class="small-box bg-info">
             <div class="inner">
                 <h3>{{ $stats['total_applications'] }}</h3>
@@ -93,29 +78,37 @@
             </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card card-outline card-warning">
-            <div class="card-header">
-                <h3 class="card-title"><i class="fas fa-cogs mr-1"></i> Shortcut Pengaturan</h3>
-            </div>
-            <div class="card-body">
-                <a href="{{ route('superadmin.settings') }}" class="btn btn-block btn-outline-warning mb-2">
-                    <i class="fas fa-sliders-h mr-2"></i> Pengaturan Sistem
-                </a>
-                <a href="{{ route('superadmin.logs') }}" class="btn btn-block btn-outline-info">
-                    <i class="fas fa-history mr-2"></i> Audit Logs
-                </a>
-            </div>
-        </div>
 
-        <div class="card card-outline card-danger">
+    <div class="col-md-4">
+        <div class="card card-outline card-info">
             <div class="card-header">
-                <h3 class="card-title"><i class="fas fa-shield-alt mr-1"></i> Status Sistem</h3>
+                <h3 class="card-title"><i class="fas fa-history mr-1"></i> Aktivitas Terakhir</h3>
             </div>
-            <div class="card-body">
-                <div class="alert alert-success">
-                    <i class="icon fas fa-check"></i> Sistem dalam keadaan <strong>Aktif</strong>
-                </div>
+            <div class="card-body p-0">
+                <ul class="products-list product-list-in-card pl-2 pr-2">
+                    @forelse($recentLogs as $log)
+                    <li class="item">
+                        <div class="product-info ml-1">
+                            <a href="javascript:void(0)" class="product-title">
+                                {{ $log->user->name ?? 'System' }}
+                                <span class="badge badge-info float-right">{{ $log->created_at->diffForHumans() }}</span>
+                            </a>
+                            <span class="product-description" style="white-space: normal;">
+                                {{ $log->activity }}
+                                <br>
+                                <small class="text-muted"><i class="fas fa-tag mr-1"></i>{{ $log->module }}</small>
+                            </span>
+                        </div>
+                    </li>
+                    @empty
+                    <li class="item text-center p-3">
+                        <span class="text-muted">Belum ada aktivitas baru.</span>
+                    </li>
+                    @endforelse
+                </ul>
+            </div>
+            <div class="card-footer text-center">
+                <a href="{{ route('superadmin.logs') }}" class="uppercase">Lihat Semua Log</a>
             </div>
         </div>
     </div>

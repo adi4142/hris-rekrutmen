@@ -7,6 +7,7 @@ use App\User;
 use App\JobVacancie;
 use App\JobApplication;
 use Illuminate\Support\Facades\DB;
+use App\ActivityLog;
 
 class SuperAdminDashboardController extends Controller
 {
@@ -81,7 +82,9 @@ class SuperAdminDashboardController extends Controller
             DB::raw('count(*) as count')
         )->groupBy('month')->orderBy('month')->get();
 
-        return view('dashboard.super_admin', compact('stats', 'applicationStats'));
+        $recentLogs = ActivityLog::with('user')->orderBy('created_at', 'desc')->take(5)->get();
+
+        return view('dashboard.super_admin', compact('stats', 'applicationStats', 'recentLogs'));
     }
 
     // ─────────────────────────────────────────────────

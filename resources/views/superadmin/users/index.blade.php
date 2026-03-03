@@ -1,21 +1,14 @@
 @extends('layouts.admin')
 
 @section('title', 'Kelola User & Role')
-@section('page_title', 'Kelola User & Role')
+@section('card_tools')
+<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modal-create">
+    <i class="fas fa-plus"></i> Tambah
+</button>
+@endsection
+@section('page_title', 'Kelola User')
 
 @section('content')
-<div class="row">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">Daftar Semua User</h3>
-                <div class="card-tools">
-                    <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#modal-add-user">
-                        <i class="fas fa-plus mr-1"></i> Tambah User
-                    </button>
-                </div>
-            </div>
-            <div class="card-body">
                 @if(session('success'))
                     <div class="alert alert-success alert-dismissible fade show" role="alert">
                         {{ session('success') }}
@@ -148,16 +141,12 @@
                         @endforeach
                     </tbody>
                 </table>
-            </div>
             <div class="card-footer clearfix">
                 {{ $users->links() }}
             </div>
-        </div>
-    </div>
-</div>
 
 {{-- Modal Add User --}}
-<div class="modal fade" id="modal-add-user">
+<div class="modal fade" id="modal-create">
     <div class="modal-dialog">
         <div class="modal-content">
             <form action="{{ route('superadmin.users.store') }}" method="POST">

@@ -4,13 +4,9 @@
 @section('page_title', 'Manajemen Pendaftar')
 
 @section('content')
-<div class="card card-primary card-outline">
-    <div class="card-header">
-        <h3 class="card-title">Daftar Pendaftar</h3>
-    </div>
-    <div class="card-body">
+
         <div class="table-responsive">
-            <table class="table table-hover table-striped">
+            <table class="table table-hover">
                 <thead class="thead-light">
                     <tr>
                         <th>No</th>
@@ -67,7 +63,18 @@
                             @endif
                         </td>
                         <td>
-                            <div class="btn-group">
+                            <div class="btn-group" role="group">
+                                @if(!$jobApplicant->user_id)
+                                <form action="{{ route('jobapplicant.create-account', $jobApplicant->job_applicant_id) }}" method="POST" style="display:inline;">
+                                    @csrf
+                                    <button type="submit" class="btn btn-success" title="Buat Akun" onclick="return confirm('Buat akun untuk pelamar ini?')">
+                                        <i class="fas fa-user-plus"></i> Buat Akun
+                                    </button>
+                                </form>
+                                @else
+                                <span class="badge badge-success"><i class="fas fa-check"></i> Akun Aktif</span>
+                                @endif
+                                
                                 <a href="{{ route('jobapplicant.edit', $jobApplicant->job_applicant_id) }}" class="btn btn-warning btn-sm" title="Edit">
                                     <i class="fas fa-edit"></i>
                                 </a>
@@ -85,8 +92,6 @@
                 </tbody>
             </table>
         </div>
-    </div>
-</div>
 
 <!-- Modal Dokumen -->
 <div class="modal fade" id="modalDocs" tabindex="-1" role="dialog" aria-labelledby="modalDocsLabel" aria-hidden="true">

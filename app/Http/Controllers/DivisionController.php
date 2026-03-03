@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Division;
 use Illuminate\Http\Request;
+use App\ActivityLog;
 
 class DivisionController extends Controller
 {
@@ -43,6 +44,8 @@ class DivisionController extends Controller
         Division::create([
         'name'=>$request->name,
         'description'=>$request->description]);
+
+        ActivityLog::log('Menambah divisi baru: ' . $request->name, 'Master Data');
 
         return redirect()->route('division.index');
     }
@@ -88,6 +91,8 @@ class DivisionController extends Controller
         'name'=>$request->name,
         'description'=>$request->description]);
 
+        ActivityLog::log('Memperbarui divisi: ' . $division->name, 'Master Data');
+
         return redirect()->route('division.index');
     }
 
@@ -99,7 +104,11 @@ class DivisionController extends Controller
      */
     public function destroy($id)
     {
-        Division::where('division_id', $id)->delete();
+        $division = Division::findOrFail($id);
+        $name = $division->name;
+        $division->delete();
+
+        ActivityLog::log('Menghapus divisi: ' . $name, 'Master Data');
         return redirect()->route('division.index');
     }
 }

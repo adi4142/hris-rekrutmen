@@ -11,8 +11,12 @@
             <div class="card-body box-profile">
                 <div class="text-center">
                     <img class="profile-user-img img-fluid img-circle"
-                        src="{{ $applicant->photo ? asset('storage/' . $applicant->photo) : asset('dist/img/default-user.png') }}"
-                        alt="User profile picture">
+                    @if($applicant->photo == null)
+                        src="{{ asset('dist/img/user.webp') }}"
+                    @else
+                        src="{{ asset('storage/' . $applicant->photo) }}"
+                    @endif
+                    alt="User profile picture">
                 </div>
 
                 <h3 class="profile-username text-center">{{ $applicant->name }}</h3>

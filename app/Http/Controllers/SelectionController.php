@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Selection;
+use App\ActivityLog;
 
 class SelectionController extends Controller
 {
@@ -45,6 +46,8 @@ class SelectionController extends Controller
             'name' => $request->name,
             'description' => $request->description,
         ]);
+
+        ActivityLog::log('Menambah jenis seleksi baru: ' . $request->name, 'Master Data');
 
         return redirect()->route('selection.index');
     }
@@ -92,6 +95,8 @@ class SelectionController extends Controller
             'description' => $request->description,
         ]);
 
+        ActivityLog::log('Memperbarui jenis seleksi: ' . $updateselection->name, 'Master Data');
+
         return redirect()->route('selection.index');
     }
 
@@ -103,7 +108,11 @@ class SelectionController extends Controller
      */
     public function destroy($id)
     {
-        Selection::where('selection_id', $id)->delete();
+        $selection = Selection::findOrFail($id);
+        $name = $selection->name;
+        $selection->delete();
+
+        ActivityLog::log('Menghapus jenis seleksi: ' . $name, 'Master Data');
         return redirect()->route('selection.index');
     }
 }

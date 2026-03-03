@@ -296,7 +296,9 @@
                 <a href="{{ route('dashboard') }}" class="btn btn-primary">Dashboard</a>
             @else
                 <a href="{{ route('login') }}" class="btn btn-outline">Login</a>
+                <a href="{{ route('register') }}" class="btn btn-primary">Register</a>
             @endauth
+
         </div>
     </nav>
 

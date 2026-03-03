@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Position;
 use Illuminate\Http\Request;
+use App\ActivityLog;
 
 class PositionController extends Controller
 {
@@ -43,6 +44,8 @@ class PositionController extends Controller
         Position::create([
         'name'=>$request->name,
         'description'=>$request->description]);
+
+        ActivityLog::log('Menambah jabatan baru: ' . $request->name, 'Master Data');
 
         return redirect()->route('position.index');
     }
@@ -88,6 +91,8 @@ class PositionController extends Controller
         'name'=>$request->name,
         'description'=>$request->description]);
 
+        ActivityLog::log('Memperbarui jabatan: ' . $position->name, 'Master Data');
+
         return redirect()->route('position.index');
     }
 
@@ -99,7 +104,11 @@ class PositionController extends Controller
      */
     public function destroy($id)
     {
-        Position::where('position_id', $id)->delete();
+        $position = Position::findOrFail($id);
+        $name = $position->name;
+        $position->delete();
+
+        ActivityLog::log('Menghapus jabatan: ' . $name, 'Master Data');
         return redirect()->route('position.index');
     }
 }

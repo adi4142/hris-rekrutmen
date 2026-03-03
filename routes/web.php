@@ -43,6 +43,10 @@ use App\Http\Controllers\ApplicantDashboardController;
 // PUBLIC ROUTES (Tanpa Autentikasi)
 // ============================================================================
 
+// Form lamaran publik (Pindahkan ke paling atas agar tidak terkena middleware)
+Route::get('/jobapplicant/create', [\App\Http\Controllers\JobAplicantController::class, 'create'])->name('jobapplicant.create');
+Route::post('/jobapplicant', [\App\Http\Controllers\JobAplicantController::class, 'store'])->name('jobapplicant.store');
+
 Route::get('/', function () {
     return view('landing');
 });
@@ -54,6 +58,12 @@ Route::get('/lowongan', function () {
                     ->get();
     return view('lowongan', compact('jobVacancies'));
 })->name('lowongan');
+
+Route::get('/lowongan/{id}', function ($id) {
+    $vacancy = \App\JobVacancie::with(['departement', 'position'])
+                ->findOrFail($id);
+    return view('lowongan_detail', compact('vacancy'));
+})->name('lowongan.detail');
 
 // Route fallback untuk storage jika symlink tidak tersedia
 Route::get('/storage/{path}', function ($path) {
@@ -67,8 +77,13 @@ Route::get('/storage/{path}', function ($path) {
     return response()->file($filePath);
 })->where('path', '.*');
 
+// Email verification click link
+Route::get('/email-verify/link/{token}', [\App\Http\Controllers\EmailVerificationController::class, 'verifyLink'])
+    ->name('emails.verify.link');
+
 // ============================================================================
 // AUTHENTICATION ROUTES
+
 // ============================================================================
 
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
@@ -78,6 +93,11 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 // Registration Routes
 // Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
 // Route::post('/register', [RegisterController::class, 'register']);
+
+// Registration khusus Pelamar
+Route::get('/register', [\App\Http\Controllers\ApplicantRegisterController::class, 'showRegistrationForm'])->name('register');
+Route::post('/register', [\App\Http\Controllers\ApplicantRegisterController::class, 'register'])->name('applicant.register.submit');
+
 
 // ============================================================================
 // ROLE VERIFICATION ROUTES (Untuk Admin & HRD - License Code)
@@ -96,7 +116,14 @@ Route::middleware(['auth'])->group(function () {
         ->name('emails.verify');
     Route::post('/email-verify/resend', [EmailVerificationController::class, 'resend'])
         ->name('emails.verify.resend');
+
+    // Forced password change (Admin/HRD first login)
+    Route::get('/change-password', [\App\Http\Controllers\PasswordChangeController::class, 'showChangeForm'])
+        ->name('password.change.form');
+    Route::post('/change-password', [\App\Http\Controllers\PasswordChangeController::class, 'updatePassword'])
+        ->name('password.change.update');
 });
+
 
 // ============================================================================
 // FORGOT PASSWORD ROUTES (Tanpa Autentikasi)
@@ -258,6 +285,7 @@ Route::middleware(['auth', 'role:admin,hrd,superadmin', 'role.verified'])->group
     Route::get('/jobvacancie/{id}/edit', [JobVacancieController::class, 'edit'])->name('jobvacancie.edit');
     Route::put('/jobvacancie/{id}', [JobVacancieController::class, 'update'])->name('jobvacancie.update');
     Route::delete('/jobvacancie/{id}', [JobVacancieController::class, 'destroy'])->name('jobvacancie.destroy');
+    Route::patch('/jobvacancie/{id}/toggle-status', [JobVacancieController::class, 'toggleStatus'])->name('jobvacancie.toggleStatus');
 
     // Selection Applicant Management
     Route::get('/selectionapplicant', [SelectionApplicantController::class, 'index'])->name('selectionapplicant.index');
@@ -288,10 +316,13 @@ Route::middleware(['auth', 'role:admin,hrd,superadmin', 'role.verified'])->group
 
 });
 
-// Shared Job Applicant Routes (Accessible by all roles)
+// Shared Job Applicant Routes (Accessible by all roles/public)
+
+Route::middleware(['auth', 'role:admin,superadmin', 'role.verified'])->group(function () {
+    Route::post('/jobapplicant/{id}/create-account', [JobAplicantController::class, 'createUserAccount'])->name('jobapplicant.create-account');
+});
+
 Route::middleware(['auth'])->group(function () {
-    Route::get('/jobapplicant/create', [JobAplicantController::class, 'create'])->name('jobapplicant.create');
-    Route::post('/jobapplicant', [JobAplicantController::class, 'store'])->name('jobapplicant.store');
 });
 
 // ============================================================================
@@ -299,9 +330,6 @@ Route::middleware(['auth'])->group(function () {
 // ============================================================================
 
 Route::middleware(['auth', 'role:pelamar,tamu'])->prefix('applicant')->group(function () {
-    Route::get('/jobapplicant/create', [JobAplicantController::class, 'create'])->name('jobapplicant.create');
-    Route::post('/jobapplicant', [JobAplicantController::class, 'store'])->name('jobapplicant.store');
-
     // Dashboard Pelamar
     Route::get('/dashboard', [ApplicantDashboardController::class, 'index'])
         ->name('applicant.dashboard');

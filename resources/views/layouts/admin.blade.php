@@ -253,15 +253,15 @@
             </a>
           </li>
           <li class="nav-item">
-            <a href="{{ route('jobapplication.index') }}" class="nav-link {{ request()->is('jobapplication*') ? 'active' : '' }}">
-              <i class="nav-icon fas fa-file-alt"></i>
-              <p>Lamaran Masuk</p>
+            <a href="{{ route('jobapplicant.index') }}" class="nav-link {{ request()->is('jobapplicant*') ? 'active' : '' }}">
+              <i class="nav-icon fas fa-users"></i>
+              <p>Manajemen Pendaftar</p>
             </a>
           </li>
           <li class="nav-item">
-            <a href="{{ route('selection.index') }}" class="nav-link {{ request()->is('selection*') ? 'active' : '' }}">
-              <i class="nav-icon fas fa-tasks"></i>
-              <p>Proses Seleksi</p>
+            <a href="{{ route('jobapplication.index') }}" class="nav-link {{ request()->is('jobapplication*') ? 'active' : '' }}">
+              <i class="nav-icon fas fa-file-alt"></i>
+              <p>Lamaran Masuk</p>
             </a>
           </li>
 @endif
@@ -290,6 +290,12 @@
 
 @if($userRole == 'hrd' || $userRole == 'admin' || $userRole == 'superadmin')
           <li class="nav-header">Master Data</li>
+          <li class="nav-item">
+            <a href="{{ route('selection.index') }}" class="nav-link {{ request()->is('selection*') ? 'active' : '' }}">
+              <i class="nav-icon fas fa-tasks"></i>
+              <p>Proses Seleksi</p>
+            </a>
+          </li>
           <li class="nav-item">
             <a href="{{ route('division.index') }}" class="nav-link {{ request()->is('division*') ? 'active' : '' }}">
               <i class="nav-icon fas fa-layer-group"></i>
@@ -323,7 +329,7 @@
       <div class="container-fluid">
         <div class="row mb-2">
           <div class="col-sm-6">
-            <h1 class="m-0">@yield('page_title', 'Dashboard')</h1>
+            <h1 class="m-0"></h1>
           </div>
           <div class="col-sm-6">
             <ol class="breadcrumb float-sm-right">
@@ -339,8 +345,30 @@
     <!-- Main content -->
     <section class="content">
       <div class="container-fluid">
-        @yield('content')
-        {{-- Chatbot Widget HTML --}}
+        <div class="card card-primary card-outline">
+          <div class="card-header">
+            <h3 class="card-title">@yield('page_title')</h3>
+            <div class="card-tools">
+                @yield('card_tools')
+            </div>
+          </div>
+          <div class="card-body">
+            @yield('content')
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- /.content -->
+  </div>
+  <!-- /.content-wrapper -->
+
+  <!-- Main Footer -->
+  <footer class="main-footer">
+    <strong>Copyright &copy; {{ date('Y') }} <a href="#">HRIS System</a>.</strong> All rights reserved.
+  </footer>
+</div>
+<!-- ./wrapper -->
+
         {{-- Chatbot Widget HTML --}}
 <div class="chat-widget minimized" id="chatWidget">
     <div class="chat-toggle-btn" onclick="toggleChat()">
@@ -458,18 +486,6 @@
 <div class="chat-toggle-btn" id="chatToggleBtnMinimized">
     <i class="fas fa-comments"></i>
 </div>
-      </div>
-    </section>
-    <!-- /.content -->
-  </div>
-  <!-- /.content-wrapper -->
-
-  <!-- Main Footer -->
-  <footer class="main-footer">
-    <strong>Copyright &copy; {{ date('Y') }} <a href="#">HRIS System</a>.</strong> All rights reserved.
-  </footer>
-</div>
-<!-- ./wrapper -->
 
 <!-- REQUIRED SCRIPTS -->
 <!-- jQuery -->

@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\EmailVerificationMail;
 
 /**
  * LoginController
@@ -55,6 +58,31 @@ class LoginController extends Controller
                 return redirect('/login')->withErrors([
                     'name' => 'Akun Anda telah ditangguhkan. Silakan hubungi Super Administrator.',
                 ]);
+                
+            }
+            elseif ($user->status == 'inactive') {
+                // Generate token baru dan kirim email verifikasi otomatis
+                $token = Str::random(64);
+                $user->email_verification_code = $token;
+                $user->save();
+
+                try {
+                    Mail::to($user->email)->send(new EmailVerificationMail(
+                        $user->name,
+                        $user->role->name ?? 'User',
+                        $token
+                    ));
+                    $emailInfo = 'Email verifikasi telah dikirim ke ' . $user->email . '. Silakan cek inbox/spam Anda.';
+                } catch (\Exception $e) {
+                    $emailInfo = 'Gagal mengirim email verifikasi. Hubungi administrator.';
+                }
+
+                auth()->logout();
+                return redirect('/login')
+                    ->with('verification_sent', $emailInfo)
+                    ->withErrors([
+                        'name' => 'Akun Anda belum aktif. ' . $emailInfo,
+                    ]);
             }
 
             $roleName = $user->role ? strtolower($user->role->name) : '';
@@ -64,8 +92,14 @@ class LoginController extends Controller
                 return redirect()->route('role.verify.form');
             }
 
+            // Cek apakah user perlu ganti password (login pertama)
+            if ($user->needs_password_change) {
+                return redirect()->route('password.change.form');
+            }
+
             // Redirect ke dashboard sesuai role
             return $this->redirectToDashboard();
+
         }
 
         // Login gagal

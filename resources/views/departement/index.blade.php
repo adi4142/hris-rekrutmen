@@ -1,14 +1,13 @@
 @extends('layouts.admin')
-@section('content') 
+@section('page_title', 'Daftar Departement')
 
-<div class="card card-primary card-outline">
-    <div class="card-header">
-        <h3 class="card-title">Daftar Departement</h3>
-        <div class="card-tools">
-            <a href="{{ route('departement.create') }}" class="btn btn-success">Tambah Departement</a>
-        </div>
-    </div>
-    <div class="card-body">
+@section('card_tools')
+<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modal-create">
+    <i class="fas fa-plus"></i> Tambah
+</button>
+@endsection
+
+@section('content')
 <table class="table table-bordered table-striped">
     <thead>
         <tr>
@@ -28,14 +27,77 @@
                 <form action="{{ route('departement.destroy', $v->departement_id) }}" method="POST" style="display:inline;">
                     {{ csrf_field() }}
                     @method('DELETE')
-                    <a href="{{ route('departement.edit', $v->departement_id) }}" class="btn btn-warning">Edit</a>
+                    <button type="button" class="btn btn-warning" data-toggle="modal" data-target="#modal-edit-{{ $v->departement_id }}">Edit</button>
                     <button type="submit" onclick="return confirm('Kamu serius?')" class="btn btn-danger">Hapus</button>
                 </form>
             </td>
         </tr>
+
+        <!-- Edit Modal -->
+        <div class="modal fade" id="modal-edit-{{ $v->departement_id }}" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Edit Departement</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <form action="{{ route('departement.update', $v->departement_id) }}" method="POST">
+                        @csrf
+                        @method('PUT')
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <label for="name">Nama Departement</label>
+                                <input type="text" name="name" class="form-control" value="{{ $v->name }}" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="description">Deskripsi</label>
+                                <textarea name="description" class="form-control">{{ $v->description }}</textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                            <button type="submit" class="btn btn-primary">Update</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <!-- End Edit Modal -->
         @endforeach
     </tbody>
 </table>
+
+<!-- Create Modal -->
+<div class="modal fade" id="modal-create" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Tambah Departement</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form action="{{ route('departement.store') }}" method="POST">
+                @csrf
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="name">Nama Departement</label>
+                        <input type="text" name="name" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="description">Deskripsi</label>
+                        <textarea name="description" class="form-control"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary">Simpan</button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
+<!-- End Create Modal -->
 @endsection

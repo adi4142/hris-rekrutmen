@@ -247,32 +247,6 @@
     </div>
 </div>
 
-{{-- Informasi Selamat Datang --}}
-<div class="row">
-    <div class="col-md-12">
-        <div class="card card-secondary card-outline">
-            <div class="card-header">
-                <h3 class="card-title">
-                    <i class="fas fa-info-circle mr-1"></i> Selamat Datang, {{ $user->name }}!
-                </h3>
-            </div>
-            <div class="card-body">
-                <div class="alert alert-info">
-                    <i class="icon fas fa-info"></i> 
-                    Anda login sebagai <strong>Pelamar</strong>. 
-                    Anda dapat melihat lowongan yang tersedia dan mengajukan lamaran.
-                </div>
-                <p>Langkah-langkah melamar pekerjaan:</p>
-                <ol>
-                    <li>Pastikan profil Anda sudah lengkap</li>
-                    <li>Lihat lowongan yang tersedia</li>
-                    <li>Klik tombol "Lamar" pada lowongan yang diminati</li>
-                    <li>Pantau status lamaran Anda di dashboard ini</li>
-                </ol>
-            </div>
-        </div>
-    </div>
-</div>
 @endsection
 
 @push('scripts')

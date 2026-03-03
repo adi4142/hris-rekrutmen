@@ -1,10 +1,8 @@
 @extends('layouts.admin')
 @section('title', 'Daftar Pelamar')
-@section('page_title', 'Data Pelamar (Job Applications)')
+@section('page_title', 'Data Lamaran')
 
 @section('content')
-<div class="row">
-    <div class="col-12">
         @if(session('success'))
             <div class="alert alert-success alert-dismissible">
                 <button type="button" class="close" data-dismiss="alert">&times;</button>
@@ -12,14 +10,9 @@
                 {{ session('success') }}
             </div>
         @endif
-
-        <div class="card card-primary card-outline">
-            <div class="card-header">
-                <h3 class="card-title">Daftar Pelamar</h3>
-            </div>
             <div class="card-body table-responsive p-0">
-                <table class="table table-hover text-nowrap">
-                    <thead>
+                    <table class="table table-hover">
+                        <thead class="thead-light">
                         <tr>
                             <th>No</th>
                             <th>Pelamar</th>
@@ -61,7 +54,4 @@
             <div class="card-footer clearfix">
                 {{ $applicants->links() }}
             </div>
-        </div>
-    </div>
-</div>
 @endsection

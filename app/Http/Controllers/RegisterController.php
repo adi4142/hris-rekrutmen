@@ -38,7 +38,7 @@ class RegisterController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'roles_id' => $request->roles_id,
-            'verification_code' => $code,
+            'email_verification_code' => $code,
         ]);
 
         // Kirim Email Verifikasi

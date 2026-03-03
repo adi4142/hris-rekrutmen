@@ -4,18 +4,6 @@
 @section('page_title', 'Log Aktivitas')
 
 @section('content')
-<div class="row">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">Log Aktivitas Sistem</h3>
-                <div class="card-tools">
-                    <button class="btn btn-tool" data-card-widget="collapse">
-                        <i class="fas fa-minus"></i>
-                    </button>
-                </div>
-            </div>
-            <div class="card-body table-responsive p-0">
                 <table class="table table-hover text-nowrap">
                     <thead>
                         <tr>
@@ -44,7 +32,4 @@
             <div class="card-footer clearfix">
                 {{ $logs->links() }}
             </div>
-        </div>
-    </div>
-</div>
 @endsection

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Role;
 use Illuminate\Http\Request;
+use App\ActivityLog;
 
 class RoleController extends Controller
 {
@@ -43,6 +44,8 @@ class RoleController extends Controller
         Role::create([
         'name'=>$request->name,
         'description'=>$request->description]);
+
+        ActivityLog::log('Menambah role baru: ' . $request->name, 'User Management');
 
         return redirect()->route('role.index');
     }
@@ -88,6 +91,8 @@ class RoleController extends Controller
         'name'=>$request->name,
         'description'=>$request->description]);
 
+        ActivityLog::log('Memperbarui role: ' . $update->name, 'User Management');
+
         return redirect()->route('role.index');
     }
 
@@ -99,7 +104,11 @@ class RoleController extends Controller
      */
     public function destroy($id)
     {
-        Role::where('roles_id', $id)->delete();
+        $role = Role::findOrFail($id);
+        $name = $role->name;
+        $role->delete();
+
+        ActivityLog::log('Menghapus role: ' . $name, 'User Management');
         return redirect()->route('role.index');
     }
 }

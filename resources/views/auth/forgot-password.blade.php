@@ -1,14 +1,11 @@
 @extends('layouts.auth')
 
+@section('card-class', 'card-info')
+
 @section('title', 'Lupa Password')
 
 @section('content')
 <div class="login-box">
-  <div class="card card-outline card-info">
-    <div class="card-header text-center">
-      <a href="/" class="h1"><b>HRIS</b> System</a>
-    </div>
-    <div class="card-body">
       <div class="text-center mb-3">
         <span class="fas fa-unlock-alt fa-3x text-info"></span>
       </div>
@@ -64,14 +61,6 @@
           </div>
         </div>
       </form>
-
-      <hr>
-      <div class="text-center">
-        <a href="{{ route('login') }}" class="text-muted">
-          <i class="fas fa-arrow-left mr-1"></i> Kembali ke halaman login
-        </a>
-      </div>
     </div>
-  </div>
-</div>
+    </div>
 @endsection

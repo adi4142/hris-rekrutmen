@@ -1,17 +1,13 @@
 @extends('layouts.auth')
 
+@section('card-class', 'card-primary')
+
 @section('title', 'Login')
+
 
 @section('content')
 <div class="login-box">
-  <div class="card card-outline card-primary">
-    <div class="card-header text-center">
-      <a href="/" class="h1"><b>HRIS</b> System</a>
-
-    </div>
-    <div class="card-body">
-      <p class="login-box-msg">Sign in to start your session</p>
-      <form action="{{ route('login') }}" method="POST">
+        <form action="{{ route('login') }}" method="POST">
         @csrf
         <div class="input-group mb-3">
           <input type="text" name="name" class="form-control @error('name') is-invalid @enderror" placeholder="Name" value="{{ old('name') }}" required autofocus>
@@ -40,21 +36,11 @@
           @enderror
         </div>
         <div class="row">
-          <div class="col-8">
-            <div class="icheck-primary">
-              <input type="checkbox" id="remember" name="remember">
-              <label for="remember">
-                Remember Me
-              </label>
-            </div>
-          </div>
           <!-- /.col -->
           <div class="col-4">
             <button type="submit" class="btn btn-block btn-primary">Masuk</button> 
           </div>
-          <div class="col-4">
-            <a href="/" class="btn btn-block btn-secondary btn-sm">Kembali</a>
-          </div>
+
           <!-- /.col -->
         </div>          
       </form>
@@ -66,12 +52,22 @@
         </div>
       @endif
 
-      <p class="mb-1 mt-3">
+      <div class="social-auth-links text-center mt-2 mb-3">
+        <hr>
+      </div>
+<div class="row">
+  <div class="col-6">
+      <p class="mb-1 mt-3 text-left">
         <a href="{{ route('password.forgot') }}">Lupa Password</a>
       </p>
-    </div>
-    <!-- /.card-body -->
   </div>
-  <!-- /.card -->
+  <div class="col-6">
+      <p class="mb-1 mt-3 text-right">
+        <a href="{{ route('register') }}" class="text-center">Belum punya akun?
+      </p>
 </div>
+</div>
+</div>
+
+
 @endsection

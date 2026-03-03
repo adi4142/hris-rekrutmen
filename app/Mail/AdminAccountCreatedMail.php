@@ -7,26 +7,26 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 
-class EmailVerificationMail extends Mailable
+class AdminAccountCreatedMail extends Mailable
 {
     use Queueable, SerializesModels;
 
     public $userName;
-    public $roleName;
-    public $token;
-    public $verifyUrl;
+    public $email;
+    public $password;
+    public $loginUrl;
 
     /**
      * Create a new message instance.
      *
      * @return void
      */
-    public function __ construct($userName, $roleName, $token)
+    public function __construct($userName, $email, $password)
     {
         $this->userName = $userName;
-        $this->roleName = $roleName;
-        $this->token = $token;
-        $this->verifyUrl = route('emails.verify.link', ['token' => $token]);
+        $this->email = $email;
+        $this->password = $password;
+        $this->loginUrl = route('login');
     }
 
     /**
@@ -36,7 +36,7 @@ class EmailVerificationMail extends Mailable
      */
     public function build()
     {
-        return $this->subject('Verifikasi Email Anda - HRIS System')
-                    ->view('emails.email-verification-link');
+        return $this->subject('Akun HRIS Anda Telah Dibuat')
+                    ->view('emails.admin-account-created');
     }
 }

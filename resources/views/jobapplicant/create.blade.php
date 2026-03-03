@@ -67,8 +67,8 @@
                                         @else
                                             <select name="gender" class="form-control @error('gender') is-invalid @enderror" required>
                                                 <option value="">-- Pilih Gender --</option>
-                                                <option value="male" {{ old('gender') == 'male' ? 'selected' : '' }}>Laki-laki</option>
-                                                <option value="female" {{ old('gender') == 'female' ? 'selected' : '' }}>Perempuan</option>
+                                                <option value="Male" {{ old('gender') == 'Male' ? 'selected' : '' }}>Laki-laki</option>
+                                                <option value="Female" {{ old('gender') == 'Female' ? 'selected' : '' }}>Perempuan</option>
                                             </select>
                                         @endif
                                         @error('gender')
@@ -89,11 +89,11 @@
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="vacancies_id">Posisi yang Dilamar <span class="text-danger">*</span></label>
-                                        <select name="vacancies_id" class="form-control @error('vacancies_id') is-invalid @enderror" required>
+                                        <select name="vacancies_id" id="vacancies_id" class="form-control @error('vacancies_id') is-invalid @enderror" required onchange="window.location.href = '{{ route('jobapplicant.create') }}?vacancies_id=' + this.value">
                                             <option value="">-- Pilih Posisi --</option>
-                                            @foreach($jobVacancies as $vacancy)
-                                                <option value="{{ $vacancy->vacancies_id }}" {{ (old('vacancies_id', $selectedVacancyId ?? '') == $vacancy->vacancies_id) ? 'selected' : '' }}>
-                                                    {{ $vacancy->title }}
+                                            @foreach($jobVacancies as $v)
+                                                <option value="{{ $v->vacancies_id }}" {{ (old('vacancies_id', $selectedVacancyId ?? '') == $v->vacancies_id) ? 'selected' : '' }}>
+                                                    {{ $v->title }}
                                                 </option>
                                             @endforeach
                                         </select>
@@ -117,127 +117,51 @@
 
                         <!-- Bagian 2: Dokumen -->
                         <div>
-                            <h5 class="border-bottom pb-2 mb-3 text-secondary font-weight-bold"><i class="fas fa-file-upload mr-2"></i>Dokumen Pendukung</h5>
-                            <p class="text-muted small mb-3">Format yang diperbolehkan: PDF, JPG, PNG, DOC (Maks. 5MB per file)</p>
-                            
                             <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="cv_file">CV / Curriculum Vitae <span class="text-danger small">(Opsional jika sudah ada)</span></label>
-                                        <div class="custom-file">
-                                            <input type="file" name="cv_file" class="custom-file-input @error('cv_file') is-invalid @enderror" id="cv_file">
-                                            <label class="custom-file-label" for="cv_file">Pilih file...</label>
-                                        </div>
-                                        @if($applicant && $applicant->cv_file)
-                                            <small class="text-success"><i class="fas fa-check-circle"></i> Sudah mengunggah CV</small>
-                                        @endif
-                                        @error('cv_file')
-                                            <span class="invalid-feedback d-block">{{ $message }}</span>
-                                        @enderror
-                                    </div>
-                                </div>
+                                <div class="col-md-12">
+                                    @php
+                                        $requiredDocs = [];
+                                        if (isset($vacancy) && $vacancy->required_documents) {
+                                            $requiredDocs = json_decode($vacancy->required_documents, true) ?: [];
+                                        }
+                                    @endphp
 
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="cover_letter">Surat Lamaran (Optional)</label>
-                                        <div class="custom-file">
-                                            <input type="file" name="cover_letter" class="custom-file-input @error('cover_letter') is-invalid @enderror" id="cover_letter">
-                                            <label class="custom-file-label" for="cover_letter">Pilih file...</label>
+                                    @if($vacancy)
+                                        <div class="alert alert-light border  mb-4">
+                                             <h6 class="border-bottom pb-2 mb-3 text-secondary font-weight-bold"><i class="fas fa-file-upload mr-2"></i>Dokumen yang Diperlukan untuk Posisi: <u>{{ $vacancy->title }}</u></h6>
+                                            @if(!empty($requiredDocs))
+                                                <div class="row">
+                                                    @foreach($requiredDocs as $docName)
+                                                        <div class="col-md-6 mb-3">
+                                                            <div class="form-group mb-0">
+                                                                <label class="small font-weight-bold">{{ $docName }} <span class="text-danger">*</span></label>
+                                                                <div class="custom-file">
+                                                                    <input type="file" name="required_files[{{ $docName }}]" class="custom-file-input @error('required_files.'.$docName) is-invalid @enderror" id="doc_{{ $loop->index }}" required>
+                                                                    <label class="custom-file-label" for="doc_{{ $loop->index }}">Pilih file {{ $docName }}...</label>
+                                                                </div>
+                                                                @error('required_files.'.$docName)
+                                                                    <span class="text-danger small">{{ $message }}</span>
+                                                                @enderror
+                                                            </div>
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+                                            @else
+                                                <p class="text-muted mb-0">Tidak ada dokumen khusus yang diwajibkan untuk posisi ini.</p>
+                                            @endif
                                         </div>
-                                        @if($applicant && $applicant->cover_letter)
-                                            <small class="text-success"><i class="fas fa-check-circle"></i> Sudah mengunggah</small>
-                                        @endif
-                                        @error('cover_letter')
-                                            <span class="invalid-feedback d-block">{{ $message }}</span>
-                                        @enderror
-                                    </div>
-                                </div>
-
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="portfolio">Portofolio (Optional)</label>
-                                        <div class="custom-file">
-                                            <input type="file" name="portfolio" class="custom-file-input @error('portfolio') is-invalid @enderror" id="portfolio">
-                                            <label class="custom-file-label" for="portfolio">Pilih file...</label>
+                                    @else
+                                        <div class="alert alert-warning">
+                                            <i class="fas fa-exclamation-triangle mr-2"></i> Silakan pilih <strong>Posisi yang Dilamar</strong> terlebih dahulu untuk melihat dokumen kerja yang diperlukan.
                                         </div>
-                                        @if($applicant && $applicant->portfolio)
-                                            <small class="text-success"><i class="fas fa-check-circle"></i> Sudah mengunggah</small>
-                                        @endif
-                                        @error('portfolio')
-                                            <span class="invalid-feedback d-block">{{ $message }}</span>
-                                        @enderror
-                                    </div>
-                                </div>
-
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="last_diploma">Ijazah Terakhir (Optional)</label>
-                                        <div class="custom-file">
-                                            <input type="file" name="last_diploma" class="custom-file-input @error('last_diploma') is-invalid @enderror" id="last_diploma">
-                                            <label class="custom-file-label" for="last_diploma">Pilih file...</label>
-                                        </div>
-                                        @if($applicant && $applicant->last_diploma)
-                                            <small class="text-success"><i class="fas fa-check-circle"></i> Sudah mengunggah</small>
-                                        @endif
-                                        @error('last_diploma')
-                                            <span class="invalid-feedback d-block">{{ $message }}</span>
-                                        @enderror
-                                    </div>
-                                </div>
-
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="transcript">Transkrip Nilai (Optional)</label>
-                                        <div class="custom-file">
-                                            <input type="file" name="transcript" class="custom-file-input @error('transcript') is-invalid @enderror" id="transcript">
-                                            <label class="custom-file-label" for="transcript">Pilih file...</label>
-                                        </div>
-                                        @if($applicant && $applicant->transcript)
-                                            <small class="text-success"><i class="fas fa-check-circle"></i> Sudah mengunggah</small>
-                                        @endif
-                                        @error('transcript')
-                                            <span class="invalid-feedback d-block">{{ $message }}</span>
-                                        @enderror
-                                    </div>
-                                </div>
-
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="supporting_certificates">Sertifikat Pendukung (Optional)</label>
-                                        <div class="custom-file">
-                                            <input type="file" name="supporting_certificates" class="custom-file-input @error('supporting_certificates') is-invalid @enderror" id="supporting_certificates">
-                                            <label class="custom-file-label" for="supporting_certificates">Pilih file...</label>
-                                        </div>
-                                        @if($applicant && $applicant->supporting_certificates)
-                                            <small class="text-success"><i class="fas fa-check-circle"></i> Sudah mengunggah</small>
-                                        @endif
-                                        @error('supporting_certificates')
-                                            <span class="invalid-feedback d-block">{{ $message }}</span>
-                                        @enderror
-                                    </div>
-                                </div>
-
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="work_experience">Surat Pengalaman Kerja (Optional)</label>
-                                        <div class="custom-file">
-                                            <input type="file" name="work_experience" class="custom-file-input @error('work_experience') is-invalid @enderror" id="work_experience">
-                                            <label class="custom-file-label" for="work_experience">Pilih file...</label>
-                                        </div>
-                                        @if($applicant && $applicant->work_experience)
-                                            <small class="text-success"><i class="fas fa-check-circle"></i> Sudah mengunggah</small>
-                                        @endif
-                                        @error('work_experience')
-                                            <span class="invalid-feedback d-block">{{ $message }}</span>
-                                        @enderror
-                                    </div>
+                                    @endif
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div class="card-footer bg-white border-top-0 pb-4 px-4 d-flex justify-content-between">
                         <a href="{{ route('lowongan') }}" class="btn btn-outline-secondary px-4"><i class="fas fa-arrow-left mr-2"></i>Kembali</a>
-                        <button type="submit" class="btn btn-primary px-5 shadow-sm font-weight-bold"><i class="fas fa-paper-plane mr-2"></i>Kirim Lamaran</button>
+                        <button type="submit" class="btn btn-primary px-5 shadow-sm font-weight-bold" id="submitBtn" {{ !$vacancy ? 'disabled' : '' }}><i class="fas fa-paper-plane mr-2"></i>Kirim Lamaran</button>
                     </div>
                 </form>
             </div>
@@ -247,10 +171,12 @@
 
 @push('scripts')
 <script>
-    // Update filename in custom file input label
-    $('.custom-file-input').on('change', function() {
-        let fileName = $(this).val().split('\\').pop();
-        $(this).next('.custom-file-label').addClass("selected").html(fileName);
+    $(document).ready(function() {
+        // Update filename in custom file input label
+        $(document).on('change', '.custom-file-input', function() {
+            let fileName = $(this).val().split('\\').pop();
+            $(this).next('.custom-file-label').addClass("selected").html(fileName);
+        });
     });
 </script>
 @endpush

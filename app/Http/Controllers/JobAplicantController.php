@@ -6,6 +6,10 @@ use Illuminate\Http\Request;
 use App\JobApplicant;
 use App\JobVacancie;
 use App\JobApplication;
+use App\User;
+use App\Role;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class JobAplicantController extends Controller
 {
@@ -42,11 +46,12 @@ class JobAplicantController extends Controller
 
         $jobVacancies = JobVacancie::all();
         $selectedVacancyId = $request->query('vacancies_id');
+        $vacancy = $selectedVacancyId ? JobVacancie::find($selectedVacancyId) : null;
         
         // If user already has a profile, we might want to pass it to the view to pre-fill
         $applicant = $user ? $user->tamu : null;
         
-        return view('jobapplicant.create', compact('jobVacancies', 'selectedVacancyId', 'applicant'));
+        return view('jobapplicant.create', compact('jobVacancies', 'selectedVacancyId', 'applicant', 'vacancy'));
     }
 
     /**
@@ -76,13 +81,7 @@ class JobAplicantController extends Controller
 
         $validationRules = [
             'vacancies_id' => 'required|exists:job_vacancies,vacancies_id',
-            'cv_file' => ($jobApplicant ? 'nullable' : 'required') . '|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120',
-            'cover_letter' => 'nullable|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120',
-            'portfolio' => 'nullable|mimes:pdf,doc,docx,jpg,jpeg,png|max:10240',
-            'last_diploma' => 'nullable|mimes:pdf,jpg,jpeg,png|max:5120',
-            'transcript' => 'nullable|mimes:pdf,jpg,jpeg,png|max:5120',
-            'supporting_certificates' => 'nullable|mimes:pdf,zip,jpg,jpeg,png|max:10240',
-            'work_experience' => 'nullable|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120',
+            'required_files.*' => 'nullable|mimes:pdf,doc,docx,jpg,jpeg,png|max:10240',
         ];
 
         if (!$jobApplicant) {
@@ -91,30 +90,46 @@ class JobAplicantController extends Controller
             $validationRules['phone'] = 'required';
             $validationRules['address'] = 'required';
             $validationRules['date_of_birth'] = 'required';
-            $validationRules['gender'] = 'required|in:male,female';
+            $validationRules['gender'] = 'required|in:Male,Female';
         }
 
         $request->validate($validationRules);
 
         $data = $request->only(['name', 'email', 'phone', 'address', 'date_of_birth', 'gender']);
         
-        $fileFields = [
-            'cv_file', 
-            'cover_letter', 
-            'portfolio', 
-            'last_diploma', 
-            'transcript', 
-            'supporting_certificates', 
-            'work_experience'
-        ];
+        // Map dynamic files to specific applicant fields if possible
+        $fileFields = ['cv_file', 'cover_letter', 'portfolio', 'last_diploma', 'transcript', 'supporting_certificates', 'work_experience'];
 
-        foreach ($fileFields as $field) {
-            if ($request->hasFile($field)) {
-                // Delete old file if exists
-                if ($jobApplicant && $jobApplicant->$field && \Storage::disk('public')->exists($jobApplicant->$field)) {
-                    \Storage::disk('public')->delete($jobApplicant->$field);
+        // Process dynamic required documents
+        $uploadedDocs = [];
+        if ($request->hasFile('required_files')) {
+            foreach ($request->file('required_files') as $docName => $file) {
+                if ($file && $file->isValid()) {
+                    $path = $file->store('applicant_documents', 'public');
+                    $uploadedDocs[] = [
+                        'name' => $docName,
+                        'path' => $path,
+                        'type' => 'required'
+                    ];
+
+                    // Try to map to profile fields
+                    $mapping = [
+                        'CV' => 'cv_file',
+                        'Curriculum Vitae' => 'cv_file',
+                        'Foto' => 'photo',
+                        'Ijazah' => 'last_diploma',
+                        'Transkrip' => 'transcript',
+                        'Sertifikat' => 'supporting_certificates',
+                        'Portofolio' => 'portfolio',
+                        'Surat Lamaran' => 'cover_letter'
+                    ];
+
+                    foreach ($mapping as $key => $field) {
+                        if (stripos($docName, $key) !== false || stripos($key, $docName) !== false) {
+                            $data[$field] = $path;
+                        }
+                    }
                 }
-                $data[$field] = $request->file($field)->store('applicant_documents', 'public');
             }
         }
 
@@ -131,13 +146,52 @@ class JobAplicantController extends Controller
             'vacancies_id' => $request->vacancies_id,
             'job_applicant_id' => $jobApplicant->job_applicant_id,
             'status' => 'pending',
+            'documents' => $uploadedDocs,
         ]);
 
-        if (auth()->check() && auth()->user()->role && strtolower(auth()->user()->role->name) == 'tamu') {
-            return redirect()->route('applicant.dashboard')->with('success', 'Lamaran berhasil dikirim!');
+        if (auth()->check()) {
+            if (auth()->user()->role && strtolower(auth()->user()->role->name) == 'tamu') {
+                return redirect()->route('applicant.dashboard')->with('success', 'Lamaran berhasil dikirim!');
+            }
+            return redirect()->route('jobapplicant.index')->with('success', 'Lamaran berhasil dikirim!');
         }
 
-        return redirect()->route('jobapplicant.index');
+        return redirect()->route('lowongan')->with('success', 'Lamaran berhasil dikirim! Kami akan menghubungi Anda melalui email jika Anda lolos tahap awal.');
+    }
+
+    public function createUserAccount(Request $request, $id)
+    {
+        $applicant = JobApplicant::findOrFail($id);
+
+        if ($applicant->user_id) {
+            return back()->with('error', 'Pendaftar ini sudah memiliki akun.');
+        }
+
+        // Generate password
+        $password = Str::random(10);
+        
+        // Find Pelamar/Tamu role
+        $role = Role::where('name', 'Pelamar')->orWhere('name', 'Tamu')->first();
+        
+        if (!$role) {
+            return back()->with('error', 'Role Pelamar tidak ditemukan di sistem.');
+        }
+
+        $user = User::create([
+            'name' => $applicant->name,
+            'email' => $applicant->email,
+            'password' => Hash::make($password),
+            'roles_id' => $role->roles_id,
+            'status' => 'active',
+            'is_role_verified' => true
+        ]);
+
+        $applicant->update(['user_id' => $user->user_id]);
+
+        // In a real app, you would send an email here
+        // Mail::to($user->email)->send(new ApplicantAccountCreated($user, $password));
+
+        return back()->with('success', 'Akun berhasil dibuat untuk ' . $applicant->name . '. Password: ' . $password . ' (Pastikan Anda menyalin password ini untuk diberikan ke pelamar jika sistem email belum aktif)');
     }
 
     /**
@@ -178,7 +232,7 @@ class JobAplicantController extends Controller
             'phone' => 'required',
             'address' => 'required',
             'date_of_birth' => 'required',
-            'gender' => 'required|in:male,female',
+            'gender' => 'required|in:Male,Female',
             'cv_file' => 'nullable|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120',
             'cover_letter' => 'nullable|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120',
             'portfolio' => 'nullable|mimes:pdf,doc,docx,jpg,jpeg,png|max:10240',

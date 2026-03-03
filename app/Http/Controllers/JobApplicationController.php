@@ -86,13 +86,15 @@ class JobApplicationController extends Controller
             'status' => 'required|in:applied,process,rejected,accepted,pending,approved'
         ]);
 
-        $jobapplication = JobApplication::findOrFail($id);
+        $jobapplication = JobApplication::with('jobApplicant', 'jobVacancie.position')->findOrFail($id);
         if ($jobapplication->status != $request->status) {
             $jobapplication->update([
                 'status' => $request->status
             ]);
 
-            ActivityLog::log('Mengubah status lamaran ID ' . $id . ' menjadi ' . $request->status, 'Lamaran');
+            $applicantName = $jobapplication->jobApplicant->name ?? 'Pelamar';
+            $positionName = $jobapplication->jobVacancie->position->name ?? 'Posisi';
+            ActivityLog::log('Mengubah status lamaran ' . $applicantName . ' (' . $positionName . ') menjadi ' . $request->status, 'Lamaran');
         }
 
         return redirect()->back()->with('success', 'Status lamaran berhasil diperbarui');
@@ -105,7 +107,8 @@ class JobApplicationController extends Controller
             'selection_date' => 'nullable|date|after_or_equal:today',
         ]);
 
-        $jobApp = JobApplication::findOrFail($id);
+        $jobApp = JobApplication::with('jobApplicant', 'jobVacancie.position')->findOrFail($id);
+        $selection = Selection::findOrFail($request->selection_id);
 
         SelectionApplicant::create([
             'selection_id' => $request->selection_id,
@@ -114,17 +117,17 @@ class JobApplicationController extends Controller
             'status' => 'unprocess',
             'score' => 0,
             'notes' => '-',
-            'job_applicant_id' => $jobApp->job_applicant_id
         ]);
 
-        ActivityLog::log('Menambah tahapan seleksi baru untuk lamaran ID ' . $id, 'Seleksi');
+        $applicantName = $jobApp->jobApplicant->name ?? 'Pelamar';
+        ActivityLog::log('Menambah tahapan seleksi ' . $selection->name . ' untuk pelamar ' . $applicantName, 'Seleksi');
 
         return redirect()->back()->with('success', 'Tahapan seleksi berhasil ditambahkan');
     }
 
     public function updateSelectionStage(Request $request, $selectionApplicantId)
     {
-        $selection = SelectionApplicant::findOrFail($selectionApplicantId);
+        $selection = SelectionApplicant::with('selection', 'jobapplication.jobApplicant')->findOrFail($selectionApplicantId);
         
         $request->validate([
             'status' => 'required|in:unprocess,process,passed,failed',
@@ -148,18 +151,23 @@ class JobApplicationController extends Controller
             'selection_date' => $request->selection_date ?? $selection->selection_date,
         ]);
 
-        ActivityLog::log('Memperbarui detail seleksi ID ' . $selectionApplicantId, 'Seleksi');
+        $selectionName = $selection->selection->name ?? 'Seleksi';
+        $applicantName = $selection->jobapplication->jobApplicant->name ?? 'Pelamar';
+        ActivityLog::log('Memperbarui tahapan seleksi ' . $selectionName . ' untuk ' . $applicantName, 'Seleksi');
 
         return redirect()->back()->with('success', 'Detail seleksi berhasil diperbarui');
     }
 
     public function deleteSelectionStage($selectionApplicantId)
     {
-        $selection = SelectionApplicant::findOrFail($selectionApplicantId);
+        $selection = SelectionApplicant::with('selection', 'jobapplication.jobApplicant')->findOrFail($selectionApplicantId);
         $appId = $selection->application_id;
+        $selectionName = $selection->selection->name ?? 'Seleksi';
+        $applicantName = $selection->jobapplication->jobApplicant->name ?? 'Pelamar';
+        
         $selection->delete();
         
-        ActivityLog::log('Menghapus tahapan seleksi dari lamaran ID ' . $appId, 'Seleksi');
+        ActivityLog::log('Menghapus tahapan seleksi ' . $selectionName . ' untuk pelamar ' . $applicantName, 'Seleksi');
         
         return redirect()->back()->with('success', 'Tahapan seleksi dihapus');
     }

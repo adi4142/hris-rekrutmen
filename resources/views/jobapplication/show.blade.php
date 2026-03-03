@@ -138,7 +138,7 @@
         </div>
 
         {{-- Dokumen --}}
-        <div class="card card-info">
+        <div class="card card-outline card-info">
             <div class="card-header">
                 <h3 class="card-title">Dokumen Pelamar</h3>
             </div>
@@ -175,12 +175,18 @@
                 <h6 class="text-primary font-weight-bold">Dokumen Tambahan (Lamaran Ini):</h6>
                 <ul class="list-group list-group-flush">
                     @if($jobapplication->documents && is_array($jobapplication->documents))
-                        @foreach($jobapplication->documents as $doc)
+                        @foreach($jobapplication->documents as $key => $doc)
+                            @php
+                                // Handle both old string format and new array format
+                                $docPath = is_array($doc) ? ($doc['path'] ?? '') : $doc;
+                                $docName = is_array($doc) ? ($doc['name'] ?? $key) : $key;
+                                $isOptional = is_array($doc) && isset($doc['type']) && $doc['type'] == 'required' ? false : true;
+                            @endphp
                             <li class="list-group-item p-2">
-                                <a href="{{ asset('storage/' . $doc['path']) }}" target="_blank" class="text-dark">
-                                    <i class="fas fa-file-alt text-info mr-2"></i> {{ $doc['name'] }}
-                                    @if(isset($doc['type']) && $doc['type'] == 'required')
-                                        <span class="badge badge-secondary small ml-1">Wajib</span>
+                                <a href="{{ asset('storage/' . $docPath) }}" target="_blank" class="text-dark">
+                                    <i class="fas fa-file-alt text-info mr-2"></i> {{ $docName }}
+                                    @if(is_array($doc) && isset($doc['type']) && $doc['type'] == 'required')
+                                        <span class="badge badge-primary small ml-1">Wajib</span>
                                     @endif
                                 </a>
                             </li>
@@ -197,12 +203,7 @@
         {{-- Tahapan Seleksi --}}
         <div class="card">
             <div class="card-header p-2">
-                <ul class="nav nav-pills">
-                    <li class="nav-item"><a class="nav-link active" href="#activity" data-toggle="tab">Tahapan Seleksi</a></li>
-                    @if(in_array($jobapplication->status, ['process', 'pending', 'applied']))
-                        <li class="nav-item"><a class="nav-link" href="#settings" data-toggle="tab">Tambah Tahapan</a></li>
-                    @endif
-                </ul>
+                <div class="nav-item"><a class="nav-link active" href="#activity" data-toggle="tab">Tahapan Seleksi</a></div>
             </div>
             <div class="card-body">
                 <div class="tab-content">
@@ -326,34 +327,6 @@
                             </div>
                         @endif
                     </div>
-
-                    <div class="tab-pane" id="settings">
-                        <form class="form-horizontal" action="{{ route('jobapplication.addSelection', $jobapplication->application_id) }}" method="POST">
-                            @csrf
-                            <div class="form-group row">
-                                <label for="inputName" class="col-sm-2 col-form-label">Tahapan Seleksi</label>
-                                <div class="col-sm-10">
-                                    <select class="form-control" name="selection_id" required>
-                                        <option value="">-- Pilih Tahapan --</option>
-                                        @foreach($selections as $sel)
-                                            <option value="{{ $sel->selection_id }}">{{ $sel->name }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="form-group row">
-                                <label for="inputEmail" class="col-sm-2 col-form-label">Tanggal Rencana</label>
-                                <div class="col-sm-10">
-                                    <input type="date" class="form-control" name="selection_date" min="{{ date('Y-m-d') }}">
-                                </div>
-                            </div>
-                            <div class="form-group row">
-                                <div class="offset-sm-2 col-sm-10">
-                                    <button type="submit" class="btn btn-success">Meluncurkan Tahapan</button>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
                 </div>
             </div>
         </div>
@@ -378,6 +351,40 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
                     <button type="submit" class="btn btn-success">Ya, Terima Pelamar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{{-- Modal Create Selection Stage --}}
+<div class="modal fade" id="modal-create" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary">
+                <h5 class="modal-title text-white">Tambah Tahapan Seleksi</h5>
+                <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
+            </div>
+            <form action="{{ route('jobapplication.addSelection', $jobapplication->application_id) }}" method="POST">
+                @csrf
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Tahapan Seleksi</label>
+                        <select class="form-control" name="selection_id" required>
+                            <option value="">-- Pilih Tahapan --</option>
+                            @foreach($selections as $sel)
+                                <option value="{{ $sel->selection_id }}">{{ $sel->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Tanggal Rencana</label>
+                        <input type="date" class="form-control" name="selection_date" min="{{ date('Y-m-d') }}">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary">Tambah Tahapan</button>
                 </div>
             </form>
         </div>

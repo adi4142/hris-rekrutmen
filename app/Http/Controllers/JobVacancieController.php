@@ -7,6 +7,7 @@ use App\JobVacancie;
 use App\Departement;
 use App\Position;
 use App\ActivityLog;
+use Carbon\Carbon;
 
 class JobVacancieController extends Controller
 {
@@ -18,7 +19,13 @@ class JobVacancieController extends Controller
     public function index()
     {
         $jobVacancies = JobVacancie::all();
-        return view('jobvacancie.index', compact('jobVacancies'));
+        $departements = Departement::all();
+        $positions = Position::all();
+
+        JobVacancie::whereDate('expired_at', '<=', Carbon::today())
+            ->where('status', 'open')
+            ->update(['status' => 'closed']);
+        return view('jobvacancie.index', compact('jobVacancies', 'departements', 'positions'));
     }
 
     /**
@@ -45,9 +52,9 @@ class JobVacancieController extends Controller
             'departement_id' => 'required|exists:departements,departement_id',
             'position_id' => 'required|exists:positions,position_id',
             'description' => 'nullable',
-            'requirements' => 'nullable',
+            'expired_at' => 'nullable|date',
+            'requirements' => 'nullable|array',
             'required_documents' => 'nullable|array',
-            'status' => 'required|in:open,closed',
         ]);
 
         $position = Position::findOrFail($request->position_id);
@@ -57,9 +64,10 @@ class JobVacancieController extends Controller
             'departement_id' => $request->departement_id,
             'position_id' => $request->position_id,
             'description' => $request->description,
-            'requirements' => $request->requirements,
+            'expired_at' => $request->expired_at,
+            'requirements' => $request->requirements ? json_encode(array_values(array_filter($request->requirements))) : null,
             'required_documents' => $request->required_documents ? json_encode($request->required_documents) : null,
-            'status' => $request->status,
+            'status' => 'closed',
         ]);
 
         ActivityLog::log('Membuat lowongan baru: ' . $position->name, 'Lowongan Kerja');
@@ -87,9 +95,9 @@ class JobVacancieController extends Controller
     public function edit($id)
     {
         $editJobVacancie = JobVacancie::findOrFail($id);
-        $departement = Departement::all();
-        $position = Position::all();
-        return view('jobvacancie.edit', compact('editJobVacancie', 'departement', 'position'));
+        $departements = Departement::all();
+        $positions = Position::all();
+        return view('jobvacancie.edit', compact('editJobVacancie', 'departements', 'positions'));
     }
 
     /**
@@ -105,9 +113,9 @@ class JobVacancieController extends Controller
             'departement_id'=>'required|exists:departements,departement_id',
             'position_id' => 'required|exists:positions,position_id',
             'description' => 'nullable',
-            'requirements' => 'nullable',
+            'expired_at' => 'nullable|date',
+            'requirements' => 'nullable|array',
             'required_documents' => 'nullable|array',
-            'status' => 'required|in:open,closed',
         ]);
 
         $editJobVacancie = JobVacancie::findOrFail($id);
@@ -118,14 +126,14 @@ class JobVacancieController extends Controller
             'departement_id' => $request->departement_id,
             'position_id' => $request->position_id,
             'description' => $request->description,
-            'requirements' => $request->requirements,
+            'expired_at' => $request->expired_at,
+            'requirements' => $request->requirements ? json_encode(array_values(array_filter($request->requirements))) : null,
             'required_documents' => $request->required_documents ? json_encode($request->required_documents) : null,
-            'status' => $request->status,
         ]);
 
         ActivityLog::log('Memperbarui lowongan: ' . $position->name, 'Lowongan Kerja');
 
-        return redirect()->route('jobvacancie.index');
+        return redirect()->route('jobvacancie.index')->with('success', 'Lowongan kerja berhasil diperbarui.');
     }
 
     /**
@@ -143,5 +151,20 @@ class JobVacancieController extends Controller
         ActivityLog::log('Menghapus lowongan: ' . $title, 'Lowongan Kerja');
 
         return redirect()->route('jobvacancie.index');
+    }
+
+    public function toggleStatus($id)
+    {
+        $jobVacancie = JobVacancie::findOrFail($id);
+        $jobVacancie->status = $jobVacancie->status === 'open' ? 'closed' : 'open';
+        $jobVacancie->save();
+
+        ActivityLog::log('Mengubah status lowongan ' . $jobVacancie->title . ' menjadi ' . $jobVacancie->status, 'Lowongan Kerja');
+
+        return response()->json([
+            'success' => true,
+            'status' => $jobVacancie->status,
+            'message' => 'Status berhasil diubah menjadi ' . $jobVacancie->status
+        ]);
     }
 }
