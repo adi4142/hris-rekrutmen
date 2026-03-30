@@ -2,210 +2,201 @@
 
 @section('title', 'Dashboard Admin')
 @section('page_title', 'Dashboard Admin')
-@section('page_subtitle', 'Ringkasan data sistem HRIS secara keseluruhan')
+@section('page_subtitle', 'Monitoring sistem dan seluruh aktivitas')
+
+@section('page_actions')
+  <a href="{{ route('admin.users.index') }}" class="btn btn-primary btn-sm">
+    <i class="fas fa-users-cog" style="font-size:11px"></i> Kelola User
+  </a>
+@endsection
 
 @push('styles')
 <style>
-  .admin-stat-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
-    margin-bottom: 24px;
+  .sa-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 14px; margin-bottom: 20px;
   }
-  @media (max-width: 992px) { .admin-stat-grid { grid-template-columns: repeat(2, 1fr); } }
-  @media (max-width: 480px)  { .admin-stat-grid { grid-template-columns: 1fr 1fr; } }
+  @media(max-width:900px){ .sa-grid { grid-template-columns: repeat(2,1fr); } }
+  @media(max-width:480px){ .sa-grid { grid-template-columns: 1fr 1fr; } }
 
-  .astat {
+  .sa-stat {
     background: var(--bg-card);
     border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 18px 20px;
+    border-radius: var(--radius-md);
+    padding: 18px;
+    position: relative; overflow: hidden;
     transition: transform 0.2s, border-color 0.2s;
-    position: relative;
-    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
   }
-  .astat:hover { transform: translateY(-2px); }
-  .astat-bg-icon {
-    position: absolute; right: 12px; bottom: 8px;
-    font-size: 42px; opacity: 0.05;
-  }
-  .astat-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-  .astat-icon {
-    width: 36px; height: 36px;
-    border-radius: 9px; display: flex; align-items: center; justify-content: center;
-    font-size: 14px;
-  }
-  .astat-badge {
-    font-size: 10.5px; font-weight: 600; padding: 3px 8px; border-radius: 20px;
-    font-family: 'Space Mono', monospace;
-  }
-  .astat-value { font-size: 32px; font-weight: 700; color: var(--text-primary); line-height: 1; font-feature-settings: "tnum"; }
-  .astat-label { font-size: 12.5px; color: var(--text-muted); margin-top: 6px; font-weight: 500; }
+  .sa-stat:hover { transform: translateY(-2px); border-color: var(--accent); }
 
-  .astat.v1 .astat-icon { background: rgba(99,102,241,0.15); color: #818cf8; }
-  .astat.v2 .astat-icon { background: rgba(20,184,166,0.15);  color: #2dd4bf; }
-  .astat.v3 .astat-icon { background: rgba(245,158,11,0.15);  color: #fbbf24; }
-  .astat.v4 .astat-icon { background: rgba(244,63,94,0.15);   color: #fb7185; }
+  .sa-stat-bg {
+    position: absolute; right: 14px; bottom: 8px;
+    font-size: 38px; opacity: 0.08; pointer-events: none;
+    color: var(--accent);
+  }
 
-  .astat.v1 .astat-badge { background: rgba(99,102,241,0.15); color: #818cf8; }
-  .astat.v2 .astat-badge { background: rgba(20,184,166,0.15);  color: #2dd4bf; }
-  .astat.v3 .astat-badge { background: rgba(245,158,11,0.15);  color: #fbbf24; }
-  .astat.v4 .astat-badge { background: rgba(244,63,94,0.15);   color: #fb7185; }
+  .sa-stat-label { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--tx-muted); margin-bottom: 8px; }
+  .sa-stat-value { font-size: 32px; font-weight: 800; color: var(--accent); line-height: 1; letter-spacing: -0.5px; font-feature-settings: "tnum"; }
+  .sa-stat-sub   { font-size: 11.5px; color: var(--tx-muted); margin-top: 7px; }
 
-  .admin-grid2 {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-    margin-bottom: 16px;
+  .main-grid {
+    display: grid; grid-template-columns: 1fr 340px; gap: 14px;
   }
-  @media (max-width: 900px) { .admin-grid2 { grid-template-columns: 1fr; } }
+  @media(max-width:1100px){ .main-grid { grid-template-columns: 1fr; } }
 
-  .funnel-row {
-    display: flex; align-items: center; gap: 12px;
-    padding: 10px 0;
-    border-bottom: 1px solid var(--border);
+  .log-list { display: flex; flex-direction: column; }
+  .log-item {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 11px 0; border-bottom: 1px solid var(--border);
   }
-  .funnel-row:last-child { border-bottom: none; padding-bottom: 0; }
-  .funnel-label { font-size: 13px; font-weight: 500; color: var(--text-secondary); min-width: 120px; }
-  .funnel-bar-track { flex: 1; background: var(--bg-elevated); border-radius: 4px; height: 8px; overflow: hidden; }
-  .funnel-bar-fill { height: 100%; border-radius: 4px; transition: width 1s cubic-bezier(0.4,0,0.2,1); }
-  .funnel-count { font-size: 12.5px; font-weight: 700; color: var(--text-primary); min-width: 32px; text-align: right; font-feature-settings: "tnum"; }
-
-  .shortcut-grid {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+  .log-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .log-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--accent); flex-shrink: 0; margin-top: 5px;
   }
-  .shortcut-item {
-    display: flex; align-items: center; gap: 10px;
-    padding: 12px;
-    background: var(--bg-elevated); border: 1px solid var(--border);
-    border-radius: 9px; text-decoration: none;
-    color: var(--text-secondary); font-size: 13px; font-weight: 500;
-    transition: all 0.18s;
-  }
-  .shortcut-item:hover {
-    background: var(--accent-dim); border-color: var(--accent-glow);
-    color: var(--text-primary); text-decoration: none;
-  }
-  .shortcut-item i { font-size: 14px; color: var(--accent); width: 16px; text-align: center; }
+  .log-user { font-size: 12.5px; font-weight: 600; color: var(--tx-primary); }
+  .log-activity { font-size: 12px; color: var(--tx-secondary); margin-top: 1px; }
+  .log-meta { font-size: 11px; color: var(--tx-muted); margin-top: 2px; }
+  .log-time { margin-left: auto; flex-shrink: 0; font-size: 11px; color: var(--tx-muted); white-space: nowrap; }
 </style>
 @endpush
 
 @section('content')
 
-{{-- STAT CARDS --}}
-<div class="admin-stat-grid">
-  <div class="astat v1">
-    <div class="astat-top">
-      <div class="astat-icon"><i class="fas fa-user-friends"></i></div>
-      <span class="astat-badge">Total</span>
-    </div>
-    <div class="astat-value">{{ $totalApplicants }}</div>
-    <div class="astat-label">Pelamar Terdaftar</div>
-    <i class="fas fa-user-friends astat-bg-icon"></i>
+<div class="sa-grid">
+  <div class="sa-stat">
+    <i class="fas fa-users sa-stat-bg"></i>
+    <div class="sa-stat-label">Total User</div>
+    <div class="sa-stat-value">{{ $stats['total_users'] }}</div>
+    <div class="sa-stat-sub">HRD & Admin</div>
   </div>
-
-  <div class="astat v2">
-    <div class="astat-top">
-      <div class="astat-icon"><i class="fas fa-briefcase"></i></div>
-      <span class="astat-badge">Aktif</span>
-    </div>
-    <div class="astat-value">{{ $totalActiveVacancies }}</div>
-    <div class="astat-label">Lowongan Dibuka</div>
-    <i class="fas fa-briefcase astat-bg-icon"></i>
+  <div class="sa-stat">
+    <i class="fas fa-briefcase sa-stat-bg"></i>
+    <div class="sa-stat-label">Lowongan</div>
+    <div class="sa-stat-value">{{ $stats['total_vacancies'] }}</div>
+    <div class="sa-stat-sub">Semua posisi</div>
   </div>
-
-  <div class="astat v3">
-    <div class="astat-top">
-      <div class="astat-icon"><i class="fas fa-file-alt"></i></div>
-      <span class="astat-badge">Semua</span>
-    </div>
-    <div class="astat-value">{{ $totalApplications }}</div>
-    <div class="astat-label">Total Lamaran</div>
-    <i class="fas fa-file-alt astat-bg-icon"></i>
+  <div class="sa-stat">
+    <i class="fas fa-user-tie sa-stat-bg"></i>
+    <div class="sa-stat-label">Pelamar</div>
+    <div class="sa-stat-value">{{ $stats['total_applicants'] }}</div>
+    <div class="sa-stat-sub">Role pelamar / tamu</div>
   </div>
-
-  <div class="astat v4">
-    <div class="astat-top">
-      <div class="astat-icon"><i class="fas fa-users"></i></div>
-      <span class="astat-badge">Sistem</span>
-    </div>
-    <div class="astat-value">{{ $totalUsers }}</div>
-    <div class="astat-label">User Terdaftar</div>
-    <i class="fas fa-users astat-bg-icon"></i>
+  <div class="sa-stat">
+    <i class="fas fa-file-alt sa-stat-bg"></i>
+    <div class="sa-stat-label">Lamaran</div>
+    <div class="sa-stat-value">{{ $stats['total_applications'] }}</div>
+    <div class="sa-stat-sub">Total semua lamaran</div>
   </div>
 </div>
 
-{{-- GRID 2 --}}
-<div class="admin-grid2">
+<div class="main-grid">
 
-  {{-- Funnel Seleksi --}}
-  @php
-    $funnelTotal = max($totalInProcess + $totalAccepted + $totalRejected, 1);
-  @endphp
   <div class="card">
-    <div class="card-header">
-      <span class="card-title"><i class="fas fa-filter mr-2" style="color:#6366f1"></i>Funnel Seleksi</span>
+    <div class="card-header" style="display:flex;align-items:center;justify-content:space-between">
+      <span class="card-title">Tren Lamaran Bulanan</span>
+      <span style="font-size:11.5px;color:var(--tx-muted)">{{ date('Y') }}</span>
     </div>
     <div class="card-body">
-      <div class="funnel-row">
-        <span class="funnel-label">Pending / Review</span>
-        <div class="funnel-bar-track">
-          <div class="funnel-bar-fill" style="width:{{ round(($totalInProcess/$funnelTotal)*100) }}%;background:#6366f1"></div>
-        </div>
-        <span class="funnel-count">{{ $totalInProcess }}</span>
+      <div style="position:relative;height:200px">
+        <canvas id="appChart"></canvas>
       </div>
-      <div class="funnel-row">
-        <span class="funnel-label">Diterima</span>
-        <div class="funnel-bar-track">
-          <div class="funnel-bar-fill" style="width:{{ round(($totalAccepted/$funnelTotal)*100) }}%;background:#14b8a6"></div>
-        </div>
-        <span class="funnel-count">{{ $totalAccepted }}</span>
-      </div>
-      <div class="funnel-row">
-        <span class="funnel-label">Ditolak</span>
-        <div class="funnel-bar-track">
-          <div class="funnel-bar-fill" style="width:{{ round(($totalRejected/$funnelTotal)*100) }}%;background:#f43f5e"></div>
-        </div>
-        <span class="funnel-count">{{ $totalRejected }}</span>
-      </div>
-      <div class="funnel-row">
-        <span class="funnel-label">Tahap Seleksi</span>
-        <div class="funnel-bar-track">
-          <div class="funnel-bar-fill" style="width:100%;background:#f59e0b"></div>
-        </div>
-        <span class="funnel-count">{{ $totalSelections }}</span>
-      </div>
+      @if($applicationStats->isEmpty())
+        <p style="text-align:center;color:var(--tx-muted);font-size:13px;margin-top:12px">Belum ada data</p>
+      @endif
     </div>
   </div>
 
-  {{-- Shortcut Menu --}}
   <div class="card">
-    <div class="card-header">
-      <span class="card-title"><i class="fas fa-th mr-2" style="color:#f59e0b"></i>Menu Utama</span>
+    <div class="card-header" style="display:flex;align-items:center;justify-content:space-between">
+      <span class="card-title">Aktivitas Terakhir</span>
+      <a href="{{ route('admin.logs') }}" class="btn btn-outline-primary btn-sm" style="font-size:11px;padding:3px 9px">Semua</a>
     </div>
-    <div class="card-body">
-      <div class="shortcut-grid">
-        <a href="{{ route('jobvacancie.index') }}" class="shortcut-item">
-          <i class="fas fa-briefcase"></i> Lowongan
-        </a>
-        <a href="{{ route('jobapplicant.index') }}" class="shortcut-item">
-          <i class="fas fa-user-friends"></i> Pelamar
-        </a>
-        <a href="{{ route('jobapplication.manage') }}" class="shortcut-item">
-          <i class="fas fa-tasks"></i> Seleksi
-        </a>
-        <a href="{{ route('recruitment-batch.index') }}" class="shortcut-item">
-          <i class="fas fa-calendar-alt"></i> Batch
-        </a>
-        <a href="{{ route('departement.index') }}" class="shortcut-item">
-          <i class="fas fa-sitemap"></i> Departemen
-        </a>
-        <a href="{{ route('position.index') }}" class="shortcut-item">
-          <i class="fas fa-user-tag"></i> Jabatan
-        </a>
+    <div class="card-body" style="padding:0 18px !important">
+      <div class="log-list">
+        @forelse($recentLogs as $log)
+        <div class="log-item">
+          <div class="log-dot"></div>
+          <div style="flex:1;min-width:0">
+            <div class="log-user">{{ $log->user->name ?? 'System' }}</div>
+            <div class="log-activity">{{ Str::limit($log->activity, 55) }}</div>
+            <div class="log-meta"><i class="fas fa-tag mr-1" style="font-size:9px"></i>{{ $log->module }}</div>
+          </div>
+          <div class="log-time">{{ $log->created_at->diffForHumans() }}</div>
+        </div>
+        @empty
+        <div style="text-align:center;padding:32px 0;color:var(--tx-muted);font-size:13px">
+          <i class="fas fa-history mb-2 d-block" style="font-size:20px;opacity:.3"></i>
+          Belum ada aktivitas
+        </div>
+        @endforelse
       </div>
     </div>
   </div>
 
 </div>
 @endsection
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script>
+(function(){
+  var raw = @json($applicationStats);
+  var months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+  var labels = [], data = [];
+  var map = {};
+  raw.forEach(function(r){ map[r.month] = r.count; });
+  for(var i=1;i<=12;i++){ labels.push(months[i-1]); data.push(map[i]||0); }
+
+  var ctx = document.getElementById('appChart');
+  if(!ctx) return;
+
+  Chart.defaults.color = '#64748b';
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Lamaran',
+        data: data,
+        backgroundColor: 'rgba(59, 130, 246, 0.7)',
+        borderColor: 'rgba(59, 130, 246, 1)',
+        borderWidth: 1,
+        borderRadius: 6,
+        borderSkipped: false,
+        hoverBackgroundColor: 'rgba(59, 130, 246, 0.9)',
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#fff',
+          titleColor: '#1e293b',
+          bodyColor: '#475569',
+          borderColor: '#e2e8f0',
+          borderWidth: 1, padding: 10,
+          callbacks: { label: function(c){ return ' '+c.parsed.y+' lamaran'; } }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: '#f1f5f9' },
+          ticks: { color: '#64748b', font: { size: 11 } },
+          border: { color: '#e2e8f0' }
+        },
+        y: {
+          beginAtZero: true,
+          grid: { color: '#f1f5f9' },
+          ticks: { color: '#64748b', font: { size: 11 }, stepSize: 1 },
+          border: { color: '#e2e8f0' }
+        }
+      }
+    }
+  });
+})();
+</script>
+@endpush

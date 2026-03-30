@@ -27,20 +27,21 @@
     padding: 18px;
     position: relative; overflow: hidden;
     transition: border-color 0.2s, transform 0.2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
   }
-  .stat-card:hover { transform: translateY(-2px); border-color: var(--border-md); }
+  .stat-card:hover { transform: translateY(-2px); border-color: var(--accent); }
 
   .stat-icon {
     width: 34px; height: 34px;
-    background: var(--bg-elevated);
+    background: var(--accent-dim);
     border: 1px solid var(--border);
     border-radius: 8px;
     display: flex; align-items: center; justify-content: center;
-    font-size: 13px; color: var(--tx-secondary);
+    font-size: 13px; color: var(--accent);
     margin-bottom: 14px;
   }
 
-  .stat-value { font-size: 28px; font-weight: 800; color: var(--tx-primary); line-height: 1; letter-spacing: -0.5px; font-feature-settings: "tnum"; }
+  .stat-value { font-size: 28px; font-weight: 800; color: var(--accent); line-height: 1; letter-spacing: -0.5px; font-feature-settings: "tnum"; }
   .stat-label { font-size: 12px; color: var(--tx-muted); margin-top: 6px; font-weight: 500; }
   .stat-sub   { font-size: 11px; color: var(--tx-muted); margin-top: 8px; display: flex; align-items: center; gap: 5px; }
 
@@ -68,7 +69,7 @@
     color: var(--tx-secondary); font-size: 13px; font-weight: 500;
     text-decoration: none; transition: all 0.15s;
   }
-  .quick-action-btn:hover { border-color: var(--border-md); color: var(--tx-primary); background: #1e1e1e; text-decoration: none; }
+  .quick-action-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); text-decoration: none; }
   .quick-action-btn i { width: 14px; text-align: center; font-size: 12px; color: var(--tx-muted); }
   .quick-action-btn .qa-arr { margin-left: auto; opacity: 0.3; font-size: 10px; }
 

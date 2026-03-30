@@ -29,7 +29,7 @@ class SuperAdminUserController extends Controller
         $users = $query->paginate(10);
         // Exclude pelamar & tamu — akun mereka dibuat otomatis saat mengirim lamaran
         $roles = Role::whereNotIn('name', ['pelamar', 'tamu', 'Pelamar', 'Tamu'])->get();
-        return view('superadmin.users.index', compact('users', 'roles'));
+        return view('admin.users.index', compact('users', 'roles'));
     }
 
     public function store(Request $request)

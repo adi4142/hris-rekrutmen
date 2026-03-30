@@ -1,15 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Job Vacancie')
-@section('page_title', 'Job Vacancie')
-
-@section('card_tools')
-<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modal-create">
-    <i class="fas fa-plus"></i> Tambah
-</button>
-@endsection
-
-@section('content')  
+@section('content')
     @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show" role="alert">
             {{ session('success') }}
@@ -32,7 +23,24 @@
         </div>
     @endif
 
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <h3 class="card-title font-weight-bold m-0"><i class="fas fa-briefcase mr-2 text-primary "></i> Manajemen Lowongan</h3>
+                    </div>
+                    <div class="col-md-6 text-right">
+                        <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#modal-create">
+                            <i class="fas fa-plus mr-1"></i> Tambah Lowongan
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-0">
                 <div class="table-responsive">
+                    <div class="table-responsive">
                     <table class="table table-hover">
                         <thead class="thead-light">
                             <tr>
@@ -115,6 +123,11 @@
                         </tbody>
                     </table>
                 </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
                 @foreach($jobVacancies as $jobVacancie)
                     @include('jobvacancie.partials.edit_modal', ['editJobVacancie' => $jobVacancie, 'departements' => $departements, 'positions' => $positions])

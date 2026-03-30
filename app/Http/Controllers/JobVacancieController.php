@@ -53,16 +53,8 @@ class JobVacancieController extends Controller
      */
     public function create()
     {
-        $departements = Departement::all();
-        $positions = Position::all();
-        $selections = \App\Selection::all();
-        
-        $hrUsers = \App\User::whereHas('role', function ($q) {
-            $q->where('name', 'NOT LIKE', '%Pelamar%')
-              ->where('name', 'NOT LIKE', '%Tamu%');
-        })->get();
-
-        return view('jobvacancie.create', compact('departements', 'positions', 'selections', 'hrUsers'));
+        // Form create sudah menggunakan modal di halaman index
+        return redirect()->route('jobvacancie.index');
     }
 
     /**

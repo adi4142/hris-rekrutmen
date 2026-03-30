@@ -16,40 +16,38 @@
   @stack('styles')
 
   <style>
-    /* ═══════════════════════════════════════════════
-       DESIGN TOKENS — hitam-putih minimalis
-    ═══════════════════════════════════════════════ */
     :root {
       --sidebar-w:   240px;
       --topbar-h:    56px;
 
-      /* Surface */
-      --bg-page:     #0a0a0a;
-      --bg-sidebar:  #111111;
-      --bg-surface:  #111111;
-      --bg-card:     #161616;
-      --bg-elevated: #1c1c1c;
-      --bg-hover:    rgba(255,255,255,0.04);
+      /* Surface - biru putih */
+      --bg-page:     #f0f4f8;
+      --bg-sidebar:  #ffffff;
+      --bg-surface:  #ffffff;
+      --bg-card:     #ffffff;
+      --bg-elevated: #f8fafc;
+      --bg-hover:    rgba(37, 99, 235, 0.08);
 
       /* Border */
-      --border:      rgba(255,255,255,0.08);
-      --border-md:   rgba(255,255,255,0.12);
-      --border-focus:rgba(255,255,255,0.4);
+      --border:      #e2e8f0;
+      --border-md:   #cbd5e1;
+      --border-focus:#3b82f6;
 
       /* Text */
-      --tx-primary:  #f5f5f5;
-      --tx-secondary:#a0a0a0;
-      --tx-muted:    #555555;
+      --tx-primary:  #1e293b;
+      --tx-secondary:#475569;
+      --tx-muted:    #94a3b8;
 
-      /* Accent — white only */
-      --accent:      #ffffff;
-      --accent-dim:  rgba(255,255,255,0.06);
+      /* Accent - biru */
+      --accent:      #3b82f6;
+      --accent-dim:  rgba(59, 130, 246, 0.1);
+      --accent-glow: rgba(59, 130, 246, 0.3);
 
       /* Semantic */
       --success:  #22c55e;
       --warning:  #f59e0b;
       --danger:   #ef4444;
-      --info:     #38bdf8;
+      --info:     #3b82f6;
 
       --radius-sm: 6px;
       --radius-md: 10px;
@@ -70,8 +68,8 @@
 
     ::-webkit-scrollbar            { width: 4px; height: 4px; }
     ::-webkit-scrollbar-track      { background: transparent; }
-    ::-webkit-scrollbar-thumb      { background: #2a2a2a; border-radius: 4px; }
-    ::-webkit-scrollbar-thumb:hover{ background: #3a3a3a; }
+    ::-webkit-scrollbar-thumb      { background: #cbd5e1; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover{ background: #94a3b8; }
 
     /* ─── SIDEBAR ─────────────────────────────── */
     .main-sidebar {
@@ -99,7 +97,7 @@
       background: var(--accent);
       border-radius: 7px;
       display: flex; align-items: center; justify-content: center;
-      font-size: 11px; font-weight: 800; color: #000;
+      font-size: 11px; font-weight: 800; color: #fff;
       flex-shrink: 0; letter-spacing: -0.5px;
       transition: opacity 0.15s;
     }
@@ -118,11 +116,11 @@
 
     .sidebar-user-avatar {
       width: 32px; height: 32px;
-      background: var(--bg-elevated);
-      border: 1px solid var(--border-md);
+      background: var(--accent-dim);
+      border: 1px solid var(--border);
       border-radius: 8px;
       display: flex; align-items: center; justify-content: center;
-      font-size: 13px; font-weight: 700; color: var(--tx-primary);
+      font-size: 13px; font-weight: 700; color: var(--accent);
       flex-shrink: 0;
     }
 
@@ -163,9 +161,9 @@
 
     .nav-sidebar .nav-link.active {
       background: var(--accent-dim) !important;
-      color: var(--tx-primary) !important;
+      color: var(--accent) !important;
     }
-    .nav-sidebar .nav-link.active i { color: var(--tx-primary); }
+    .nav-sidebar .nav-link.active i { color: var(--accent); }
     .nav-sidebar .nav-link.active::before {
       content: '';
       position: absolute; left: 0; top: 50%; transform: translateY(-50%);
@@ -186,7 +184,7 @@
       color: var(--tx-secondary); font-size: 13px; font-weight: 500;
       cursor: pointer; transition: all 0.15s;
     }
-    .btn-logout:hover { background: rgba(239,68,68,.08); border-color: rgba(239,68,68,.25); color: #fca5a5; }
+    .btn-logout:hover { background: rgba(239,68,68,.08); border-color: rgba(239,68,68,.2); color: var(--danger); }
     .btn-logout i { font-size: 12px; }
 
     /* ─── TOPBAR ────────────────────────────────── */
@@ -219,10 +217,10 @@
 
     .topbar-avatar {
       width: 30px; height: 30px;
-      background: var(--bg-elevated); border: 1px solid var(--border-md);
+      background: var(--accent-dim); border: 1px solid var(--border);
       border-radius: 7px;
       display: flex; align-items: center; justify-content: center;
-      font-size: 12px; font-weight: 700; color: var(--tx-primary); cursor: pointer;
+      font-size: 12px; font-weight: 700; color: var(--accent); cursor: pointer;
     }
 
     /* ─── CONTENT WRAPPER ─────────────────────── */
@@ -303,10 +301,10 @@
 
     /* Primary = white button */
     .btn-primary {
-      background: var(--accent) !important; color: #0a0a0a !important;
+      background: var(--accent) !important; color: #fff !important;
     }
-    .btn-primary:hover { background: #e5e5e5 !important; transform: translateY(-1px); }
-    .btn-primary:focus { box-shadow: 0 0 0 3px rgba(255,255,255,.15) !important; }
+    .btn-primary:hover { background: #2563eb !important; transform: translateY(-1px); }
+    .btn-primary:focus { box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3) !important; }
 
     .btn-success { background: var(--success) !important; color: #fff !important; }
     .btn-success:hover { background: #16a34a !important; }
@@ -401,7 +399,7 @@
       color: var(--tx-secondary); border-radius: var(--radius-sm) !important;
       margin: 0 2px; font-size: 12.5px; padding: 5px 10px;
     }
-    .pagination .page-item.active .page-link { background: var(--accent); border-color: var(--accent); color: #000; }
+    .pagination .page-item.active .page-link { background: var(--accent); border-color: var(--accent); color: #fff; }
     .pagination .page-link:hover { background: var(--bg-card); color: var(--tx-primary); }
 
     /* ─── MODALS ───────────────────────────────── */
@@ -423,7 +421,7 @@
     .nav-tabs { border-bottom: 1px solid var(--border); }
     .nav-tabs .nav-link { color: var(--tx-secondary); border: none; border-radius: var(--radius-sm) var(--radius-sm) 0 0; font-size: 13px; padding: 8px 16px; }
     .nav-tabs .nav-link:hover { background: var(--bg-hover); color: var(--tx-primary); }
-    .nav-tabs .nav-link.active { background: var(--bg-card); color: var(--tx-primary); border-bottom: 2px solid var(--accent); font-weight: 600; }
+    .nav-tabs .nav-link.active { background: var(--bg-card); color: var(--accent); border-bottom: 2px solid var(--accent); font-weight: 600; }
 
     /* ─── MISC ──────────────────────────────────── */
     .main-footer { display: none; }
@@ -486,7 +484,7 @@
     $authUser   = auth()->user();
     $userRole   = $authUser && $authUser->role
         ? str_replace(' ', '', strtolower($authUser->role->name)) : '';
-    $dashRoute  = $userRole === 'superadmin' ? 'superadmin.dashboard' : 'hrd.dashboard';
+    $dashRoute  = $userRole === 'admin' ? 'admin.dashboard' : 'hrd.dashboard';
     $userInit   = strtoupper(substr($authUser->name ?? 'U', 0, 1));
   @endphp
 
@@ -516,7 +514,7 @@
           </a>
         </li>
 
-        @if(in_array($userRole, ['hrd', 'superadmin']))
+        @if(in_array($userRole, ['admin', 'hrd']))
           <div class="nav-section-label">Rekrutmen</div>
           <li class="nav-item">
             <a href="{{ route('jobvacancie.index') }}" class="nav-link {{ request()->is('jobvacancie*') ? 'active' : '' }}">
@@ -540,15 +538,15 @@
           </li>
         @endif
 
-        @if($userRole === 'superadmin')
+        @if($userRole === 'admin')
           <div class="nav-section-label">Control Panel</div>
           <li class="nav-item">
-            <a href="{{ route('superadmin.users.index') }}" class="nav-link {{ request()->is('superadmin/users*') ? 'active' : '' }}">
+            <a href="{{ route('admin.users.index') }}" class="nav-link {{ request()->is('admin/users*') ? 'active' : '' }}">
               <i class="fas fa-users-cog"></i><p>Manajemen User</p>
             </a>
           </li>
           <li class="nav-item">
-            <a href="{{ route('superadmin.logs') }}" class="nav-link {{ request()->is('superadmin/logs*') ? 'active' : '' }}">
+            <a href="{{ route('admin.logs') }}" class="nav-link {{ request()->is('admin/logs*') ? 'active' : '' }}">
               <i class="fas fa-history"></i><p>Audit Log</p>
             </a>
           </li>
@@ -586,21 +584,6 @@
   </div>
 </aside>
 
-<!-- ═══ TOPBAR ═══ -->
-<nav class="main-header" id="mainHeader">
-  <button class="topbar-toggle" onclick="toggleSidebar()">
-    <i class="fas fa-bars"></i>
-  </button>
-  <div class="topbar-breadcrumb">
-    <span class="breadcrumb-item">HRIS</span>
-    <span class="breadcrumb-sep">/</span>
-    <span class="breadcrumb-item active">@yield('title', 'Dashboard')</span>
-  </div>
-  <div class="topbar-actions">
-    <div class="topbar-avatar" title="{{ $authUser->name ?? '' }}">{{ $userInit }}</div>
-  </div>
-</nav>
-
 <!-- ═══ CONTENT ═══ -->
 <div class="content-wrapper">
 
@@ -623,14 +606,6 @@
       <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
     </div>
   @endif
-
-  <div class="page-header">
-    <div class="page-header-left">
-      <h1>@yield('page_title', 'Dashboard')</h1>
-      @hasSection('page_subtitle')<p>@yield('page_subtitle')</p>@endif
-    </div>
-    <div>@yield('page_actions')</div>
-  </div>
 
   @yield('content')
 

@@ -25,16 +25,16 @@ class HrdDashboardController extends Controller
     {
         // Ambil user yang sedang login
         $user = auth()->user();
-        $isSuperAdmin = $user && $user->isSuperAdmin();
+        $isAdmin = $user && $user->role && str_replace(' ', '', strtolower($user->role->name)) === 'admin';
 
         // Query Base untuk JobVacancie yang diassign ke HR ini
         $assignedVacanciesQuery = JobVacancie::query();
-        if (!$isSuperAdmin) {
+        if (!$isAdmin) {
             $assignedVacanciesQuery->whereHas('hrs', function($q) use ($user) {
                 $q->where('job_vacancy_hr.user_id', $user->user_id);
             });
         }
-        
+
         $assignedVacancyIds = $assignedVacanciesQuery->pluck('vacancies_id')->toArray();
 
         // Total pelamar yang sedang diproses (status pending atau process)

@@ -8,7 +8,6 @@ use Illuminate\Http\Request;
 
 use App\Selection;
 use App\SelectionApplicant;
-use App\JobVacancyStage;
 use Illuminate\Support\Facades\DB;
 use App\ActivityLog;
 use App\RecruitmentBatch;
@@ -16,7 +15,7 @@ use App\Mail\BatchInfoMail;
 use App\Mail\ApplicationStatusMail;
 use App\Mail\JobOfferingMail;
 use Illuminate\Support\Facades\Mail;
-use App\RecruitmentBatchStage;
+
 
 class JobApplicationController extends Controller
 {

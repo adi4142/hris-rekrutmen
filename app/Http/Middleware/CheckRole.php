@@ -32,7 +32,8 @@ class CheckRole
     protected function redirectToDashboard($userRole, $request)
     {
         $dashboardRoutes = [
-            'superadmin' => 'superadmin.dashboard',
+            'admin'      => 'admin.dashboard',
+            'superadmin' => 'admin.dashboard', // backward compat jika ada data lama
             'hrd'        => 'hrd.dashboard',
             'pelamar'    => 'applicant.dashboard',
             'tamu'       => 'applicant.dashboard',
@@ -42,11 +43,9 @@ class CheckRole
 
         if (isset($dashboardRoutes[$userRole])) {
             $targetRoute = $dashboardRoutes[$userRole];
-
             if ($currentRoute === $targetRoute) {
                 abort(403, 'Unauthorized action.');
             }
-
             return redirect()->route($targetRoute);
         }
 

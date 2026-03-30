@@ -58,7 +58,7 @@
                     @endif
                 </h3>
                 <div class="card-tools">
-                    <span class="badge badge-dark">Total: {{ $applications->total() }} Pelamar</span>
+                    <span class="badge ">Total: {{ $applications->total() }} Pelamar</span>
                 </div>
             </div>
 

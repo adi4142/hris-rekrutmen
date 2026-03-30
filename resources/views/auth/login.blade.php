@@ -1,7 +1,7 @@
 @extends('layouts.auth')
 
 @section('title', 'Masuk')
-@section('subtitle', 'Login untuk mengakses panel HRD & Super Admin')
+@section('subtitle', 'Login untuk mengakses panel HRD & Admin')
 
 @section('content')
 

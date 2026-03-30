@@ -14,9 +14,9 @@ class CreateSuperAdminInfrastructure extends Migration
      */
     public function up()
     {
-        // 1. Tambahkan role Super Admin
+        // 1. Tambahkan role Admin
         DB::table('roles')->insertOrIgnore([
-            ['name' => 'Super Admin', 'description' => 'Mengatur sistem dan pengguna'],
+            ['name' => 'Admin', 'description' => 'Mengatur sistem dan pengguna'],
         ]);
 
         // 2. Tambahkan kolom status aktif pada user
@@ -73,6 +73,6 @@ class CreateSuperAdminInfrastructure extends Migration
         Schema::table('users', function (Blueprint $table) {
             $table->dropColumn('status');
         });
-        DB::table('roles')->where('name', 'Super Admin')->delete();
+        DB::table('roles')->where('name', 'Admin')->delete();
     }
 }

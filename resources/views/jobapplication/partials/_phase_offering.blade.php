@@ -30,9 +30,6 @@
 </div>
 
 <div class="p-3 bg-light border-top d-flex justify-content-between align-items-center" style="background-color: var(--bg-card) !important; color: var(--text-primary) !important;">
-    <div class="text-muted small" style="color: var(--text-primary) !important;">
-        <i class="fas fa-info-circle mr-1"></i> Pilih pelamar untuk menyetujui dan mengirim Offering Letter secara massal.
-    </div>
     <button type="button" class="btn btn-primary shadow-sm" onclick="bulkApproveOffering('{{ csrf_token() }}', '{{ route('jobapplication.approveOffering') }}')">
         <i class="fas fa-paper-plane mr-2"></i> Approve & Kirim Offering
     </button>

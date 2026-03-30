@@ -1,13 +1,25 @@
 @extends('layouts.admin')
 @section('page_title', 'Seleksi')
-@section('card_tools')
-<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modal-create">
-    <i class="fas fa-plus"></i> Tambah
-</button>
-@endsection
 @section('content')
 
-        <table class="table table-hover">
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <h3 class="card-title font-weight-bold m-0"><i class="fas fa-layer-group mr-2 text-primary"></i> Tahap Seleksi</h3>
+                    </div>
+                    <div class="col-md-6 text-right">
+                        <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#modal-create">
+                            <i class="fas fa-plus mr-1"></i> Tambah
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+        <table class="table table-hover mb-0">
             <thead class="thead-light">
                 <tr>
                     <th>No</th>
@@ -51,6 +63,11 @@
                 @endforeach
             </tbody>
         </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
         @foreach ($selections as $j)
         <!-- Edit Modal -->

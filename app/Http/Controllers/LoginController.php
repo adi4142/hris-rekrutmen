@@ -32,7 +32,7 @@ class LoginController extends Controller
             if ($user->status == 'suspended') {
                 auth()->logout();
                 return redirect('/login')->withErrors([
-                    'email' => 'Akun Anda telah ditangguhkan. Silakan hubungi Super Administrator.',
+                    'email' => 'Akun Anda telah ditangguhkan. Silakan hubungi Administrator.',
                 ]);
             }
 
@@ -60,11 +60,11 @@ class LoginController extends Controller
 
             $roleName = $user->role ? strtolower(str_replace(' ', '', $user->role->name)) : '';
 
-            // Hanya HRD & Superadmin yang boleh login lewat halaman ini
-            if (!in_array($roleName, ['hrd', 'superadmin'])) {
+            // Hanya Admin & HRD yang boleh login lewat halaman ini
+            if (!in_array($roleName, ['admin', 'hrd'])) {
                 auth()->logout();
                 return redirect('/login')->withErrors([
-                    'email' => 'Halaman ini hanya untuk HRD dan Super Admin.',
+                    'email' => 'Halaman ini hanya untuk Admin dan HRD.',
                 ]);
             }
 
@@ -100,8 +100,8 @@ class LoginController extends Controller
         $role = $user->role ? strtolower(str_replace(' ', '', $user->role->name)) : '';
 
         switch ($role) {
-            case 'superadmin':
-                return redirect()->route('superadmin.dashboard');
+            case 'admin':
+                return redirect()->route('admin.dashboard');
             case 'hrd':
                 return redirect()->route('hrd.dashboard');
             default:

@@ -33,7 +33,13 @@ class SuperAdminDashboardController extends Controller
 
         $recentLogs = ActivityLog::with('user')->orderBy('created_at', 'desc')->take(5)->get();
 
-        return view('dashboard.super_admin', compact('stats', 'applicationStats', 'recentLogs'));
+        return view('dashboard.admin', compact('stats', 'applicationStats', 'recentLogs'));
+    }
+
+    public function stats()
+    {
+        // For backward compatibility - stats only for admin dashboard
+        return $this->index();
     }
 
     // ─────────────────────────────────────────────────
@@ -48,6 +54,6 @@ class SuperAdminDashboardController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(15);
 
-        return view('superadmin.logs', compact('logs'));
+        return view('admin.logs', compact('logs'));
     }
 }

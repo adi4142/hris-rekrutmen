@@ -1,31 +1,36 @@
 @extends('layouts.admin')
 @section('page_title', 'Daftar Departement')
 
-@section('card_tools')
-<div class="d-flex align-items-center">
-    <form action="{{ route('departement.index') }}" method="GET" class="mr-2">
-        <div class="input-group input-group-sm" style="width: 250px;">
-            <input type="text" name="search" class="form-control" placeholder="Cari departemen..." value="{{ request('search') }}">
-            <div class="input-group-append">
-                @if(request('search'))
-                <a href="{{ route('departement.index') }}" class="btn btn-danger">
-                    <i class="fas fa-times"></i>
-                </a>
-                @endif
-                <button type="submit" class="btn btn-default">
-                    <i class="fas fa-search"></i>
-                </button>
-            </div>
-        </div>
-    </form>
-    <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#modal-create">
-        <i class="fas fa-plus mr-1"></i> Tambah
-    </button>
-</div>
-@endsection
-
 @section('content')
-<table class="table table-bordered table-striped">
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <h3 class="card-title font-weight-bold m-0"><i class="fas fa-sitemap mr-2 text-primary"></i> Departemen</h3>
+                    </div>
+                    <div class="col-md-6 text-right d-flex justify-content-end align-items-center" style="gap:8px">
+                        <form action="{{ route('departement.index') }}" method="GET">
+                            <div class="input-group input-group-sm" style="width: 220px;">
+                                <input type="text" name="search" class="form-control" placeholder="Cari departemen..." value="{{ request('search') }}">
+                                <div class="input-group-append">
+                                    @if(request('search'))
+                                    <a href="{{ route('departement.index') }}" class="btn btn-danger"><i class="fas fa-times"></i></a>
+                                    @endif
+                                    <button type="submit" class="btn btn-default"><i class="fas fa-search"></i></button>
+                                </div>
+                            </div>
+                        </form>
+                        <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#modal-create">
+                            <i class="fas fa-plus mr-1"></i> Tambah
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+<table class="table table-hover mb-0">
     <thead>
         <tr>
             <th>Nomor</th>
@@ -87,12 +92,16 @@
         @endforeach
     </tbody>
 </table>
-
-@if($departement->hasPages())
-<div class="mt-4">
-    {{ $departement->appends(request()->input())->links() }}
+                </div>
+            </div>
+            <div class="card-footer clearfix">
+                @if($departement->hasPages())
+                    {{ $departement->appends(request()->input())->links() }}
+                @endif
+            </div>
+        </div>
+    </div>
 </div>
-@endif
 
 <!-- Create Modal -->
 <div class="modal fade" id="modal-create" tabindex="-1" role="dialog" aria-hidden="true">
