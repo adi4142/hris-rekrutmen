@@ -4,6 +4,8 @@
 
 @section('title', 'Lupa Password')
 
+@section('back_url', 'login')
+
 @section('content')
 <div class="login-box">
       <div class="text-center mb-3">

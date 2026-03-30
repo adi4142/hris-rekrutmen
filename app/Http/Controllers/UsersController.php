@@ -15,9 +15,21 @@ class UsersController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::all();
+        $query = User::with('role');
+
+        if ($request->search) {
+            $query->where(function($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->search . '%')
+                  ->orWhere('email', 'like', '%' . $request->search . '%')
+                  ->orWhereHas('role', function($q_role) use ($request) {
+                      $q_role->where('name', 'like', '%' . $request->search . '%');
+                  });
+            });
+        }
+
+        $users = $query->paginate(20);
         return view('user.index', compact('users'));
     }
 

@@ -60,129 +60,184 @@
                     </li>
                 </ul>
             </div>
-            <div class="card-footer">
-                <a href="{{ route('applicant.profile.edit') }}" class="btn btn-primary btn-block">
-                    <i class="fas fa-edit"></i> Edit Profil
-                </a>
+            <div class="card-footer px-0">
+                <button type="button" class="btn btn-primary btn-block mb-2 font-weight-bold" data-toggle="modal" data-target="#modalEditProfile">
+                    <i class="fas fa-user-edit"></i> Edit Profil
+                </button>
+                <button type="button" class="btn btn-warning btn-block font-weight-bold" data-toggle="modal" data-target="#modalChangePassword">
+                    <i class="fas fa-key"></i> Ganti Password
+                </button>
             </div>
         </div>
     </div>
 
     <div class="col-md-8">
-        {{-- Card Form Profil --}}
-        <div class="card card-primary card-outline">
-            <div class="card-header">
-                <h3 class="card-title">
-                    <i class="fas fa-user-edit"></i> Edit Profil
+        {{-- Card Data Profil --}}
+        <div class="card card-primary card-outline shadow-sm">
+            <div class="card-header bg-white">
+                <h3 class="card-title font-weight-bold">
+                    <i class="fas fa-id-card mr-1 text-primary"></i> Data Personal & Berkas
                 </h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-12 mb-4">
+                        <h5 class="text-muted border-bottom pb-2 mb-3"><i class="fas fa-info-circle mr-1"></i> Informasi Dasar</h5>
+                        <div class="row px-2">
+                            <div class="col-md-6 mb-3">
+                                <label class="small text-muted mb-1 d-block">Nama Lengkap</label>
+                                <div class="font-weight-bold text-dark">{{ $user->name }}</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="small text-muted mb-1 d-block">Email Utama</label>
+                                <div class="font-weight-bold text-dark">{{ $user->email }}</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="small text-muted mb-1 d-block">Nomor Telepon</label>
+                                <div class="font-weight-bold text-dark">{{ $applicant->phone ?? '-' }}</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="small text-muted mb-1 d-block">Tanggal Lahir</label>
+                                <div class="font-weight-bold text-dark">
+                                    {{ $applicant && $applicant->date_of_birth ? \Carbon\Carbon::parse($applicant->date_of_birth)->format('d F Y') : '-' }}
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="small text-muted mb-1 d-block">Jenis Kelamin</label>
+                                <div class="font-weight-bold text-dark">
+                                    {{ ($applicant->gender ?? '') == 'male' ? 'Laki-laki' : (($applicant->gender ?? '') == 'female' ? 'Perempuan' : '-') }}
+                                </div>
+                            </div>
+                            <div class="col-md-12 mb-3">
+                                <label class="small text-muted mb-1 d-block">Alamat Lengkap</label>
+                                <div class="text-dark">{{ $applicant->address ?? '-' }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-light text-center py-2">
+                <small class="text-muted font-italic">Terakhir diperbarui: {{ $applicant ? $applicant->updated_at->format('d M Y H:i') : '-' }}</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- MODAL EDIT PROFIL --}}
+<div class="modal fade" id="modalEditProfile" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content shadow-lg border-0">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title font-weight-bold"><i class="fas fa-user-edit mr-2"></i> Lengkapi Profil Anda</h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
             </div>
             <form action="{{ route('applicant.profile.update') }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
-                <div class="card-body">
+                <div class="modal-body p-4">
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label for="name">Nama Lengkap <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control @error('name') is-invalid @enderror" 
-                                       id="name" name="name" 
-                                       value="{{ old('name', $applicant->name ?? $user->name) }}" required>
-                                @error('name')
-                                <span class="invalid-feedback">{{ $message }}</span>
-                                @enderror
+                                <label class="font-weight-bold">Nama Lengkap <span class="text-danger">*</span></label>
+                                <input type="text" name="name" class="form-control @error('name') is-invalid @enderror" value="{{ old('name', $user->name) }}" required>
+                                @error('name') <span class="invalid-feedback">{{ $message }}</span> @enderror
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label for="email">Email <span class="text-danger">*</span></label>
-                                <input type="email" class="form-control @error('email') is-invalid @enderror" 
-                                       id="email" name="email" 
-                                       value="{{ old('email', $applicant->email ?? $user->email) }}" required>
-                                @error('email')
-                                <span class="invalid-feedback">{{ $message }}</span>
-                                @enderror
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="phone">No. Telepon <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control @error('phone') is-invalid @enderror" 
-                                       id="phone" name="phone" 
-                                       value="{{ old('phone', $applicant->phone ?? '') }}" required>
-                                @error('phone')
-                                <span class="invalid-feedback">{{ $message }}</span>
-                                @enderror
+                                <label class="font-weight-bold">Email <span class="text-danger">*</span></label>
+                                <input type="email" name="email" class="form-control @error('email') is-invalid @enderror" value="{{ old('email', $user->email) }}" required>
+                                @error('email') <span class="invalid-feedback">{{ $message }}</span> @enderror
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label for="date_of_birth">Tanggal Lahir <span class="text-danger">*</span></label>
-                                <input type="date" class="form-control @error('date_of_birth') is-invalid @enderror" 
-                                       id="date_of_birth" name="date_of_birth" 
-                                       value="{{ old('date_of_birth', $applicant->date_of_birth ?? '') }}" required>
-                                @error('date_of_birth')
-                                <span class="invalid-feedback">{{ $message }}</span>
-                                @enderror
+                                <label class="font-weight-bold">No. Telepon <span class="text-danger">*</span></label>
+                                <input type="text" name="phone" class="form-control @error('phone') is-invalid @enderror" value="{{ old('phone', $applicant->phone ?? '') }}" required>
+                                @error('phone') <span class="invalid-feedback">{{ $message }}</span> @enderror
                             </div>
                         </div>
-                    </div>
-
-                    <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label for="gender">Jenis Kelamin <span class="text-danger">*</span></label>
-                                <select class="form-control @error('gender') is-invalid @enderror" 
-                                        id="gender" name="gender" required>
-                                    <option value="">-- Pilih --</option>
+                                <label class="font-weight-bold">Tanggal Lahir <span class="text-danger">*</span></label>
+                                <input type="date" name="date_of_birth" class="form-control @error('date_of_birth') is-invalid @enderror" value="{{ old('date_of_birth', $applicant->date_of_birth ?? '') }}" required>
+                                @error('date_of_birth') <span class="invalid-feedback">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="font-weight-bold">Jenis Kelamin <span class="text-danger">*</span></label>
+                                <select name="gender" class="form-control @error('gender') is-invalid @enderror" required>
                                     <option value="male" {{ old('gender', $applicant->gender ?? '') == 'male' ? 'selected' : '' }}>Laki-laki</option>
                                     <option value="female" {{ old('gender', $applicant->gender ?? '') == 'female' ? 'selected' : '' }}>Perempuan</option>
                                 </select>
-                                @error('gender')
-                                <span class="invalid-feedback">{{ $message }}</span>
-                                @enderror
+                                @error('gender') <span class="invalid-feedback">{{ $message }}</span> @enderror
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-12">
                             <div class="form-group">
-                                <label for="cv_file">Upload CV (PDF, DOC, DOCX - Max 2MB)</label>
-                                <div class="input-group">
-                                    <div class="custom-file">
-                                        <input type="file" class="custom-file-input @error('cv_file') is-invalid @enderror" 
-                                               id="cv_file" name="cv_file" accept=".pdf,.doc,.docx">
-                                        <label class="custom-file-label" for="cv_file">
-                                            {{ $applicant && $applicant->cv_file ? 'Ganti CV' : 'Pilih file' }}
-                                        </label>
-                                    </div>
-                                </div>
-                                @if($applicant && $applicant->cv_file)
-                                <small class="text-success">
-                                    <i class="fas fa-check"></i> CV sudah diupload
-                                </small>
-                                @endif
-                                @error('cv_file')
-                                <span class="text-danger">{{ $message }}</span>
-                                @enderror
+                                <label class="font-weight-bold">Alamat Lengkap <span class="text-danger">*</span></label>
+                                <textarea name="address" class="form-control @error('address') is-invalid @enderror" rows="3" required>{{ old('address', $applicant->address ?? '') }}</textarea>
+                                @error('address') <span class="invalid-feedback">{{ $message }}</span> @enderror
                             </div>
                         </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="address">Alamat <span class="text-danger">*</span></label>
-                        <textarea class="form-control @error('address') is-invalid @enderror" 
-                                  id="address" name="address" rows="3" required>{{ old('address', $applicant->address ?? '') }}</textarea>
-                        @error('address')
-                        <span class="invalid-feedback">{{ $message }}</span>
-                        @enderror
+                        <div class="col-md-12">
+                            <div class="form-group mb-0">
+                                <label class="font-weight-bold">Foto Profil (Opsi)</label>
+                                <div class="custom-file">
+                                    <input type="file" name="photo" class="custom-file-input @error('photo') is-invalid @enderror" id="photo_input" accept="image/*">
+                                    <label class="custom-file-label" for="photo_input">Pilih Foto</label>
+                                </div>
+                                @error('photo') <span class="text-danger small">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
                     </div>
                 </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary border-0" data-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary font-weight-bold shadow-sm px-4">Simpan Perubahan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
-                <div class="card-footer">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save"></i> Simpan Profil
-                    </button>
+{{-- MODAL GANTI PASSWORD --}}
+<div class="modal fade" id="modalChangePassword" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content shadow-lg border-0">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title font-weight-bold text-dark"><i class="fas fa-key mr-2"></i> Ganti Password Akun</h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form action="{{ route('applicant.password.change') }}" method="POST">
+                @csrf
+                <div class="modal-body p-4">
+                    <div class="alert alert-info py-2 small">
+                        <i class="fas fa-info-circle mr-1"></i> Password minimal 8 karakter.
+                    </div>
+                    <div class="form-group">
+                        <label class="font-weight-bold text-dark">Password Saat Ini</label>
+                        <input type="password" name="current_password" class="form-control @error('current_password') is-invalid @enderror" required>
+                        @error('current_password') <span class="invalid-feedback">{{ $message }}</span> @enderror
+                    </div>
+                    <div class="form-group">
+                        <label class="font-weight-bold text-dark">Password Baru</label>
+                        <input type="password" name="new_password" class="form-control @error('new_password') is-invalid @enderror" required>
+                        @error('new_password') <span class="invalid-feedback">{{ $message }}</span> @enderror
+                    </div>
+                    <div class="form-group">
+                        <label class="font-weight-bold text-dark">Konfirmasi Password Baru</label>
+                        <input type="password" name="new_password_confirmation" class="form-control" required>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light text-dark">
+                    <button type="button" class="btn btn-secondary border-0" data-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-warning font-weight-bold text-dark shadow-sm px-4">Update Password</button>
                 </div>
             </form>
         </div>
@@ -192,10 +247,17 @@
 
 @push('scripts')
 <script>
-// Update label file input
-document.querySelector('.custom-file-input').addEventListener('change', function(e) {
-    var fileName = e.target.files[0] ? e.target.files[0].name : 'Pilih file';
-    e.target.nextElementSibling.textContent = fileName;
-});
+    // Handle File Input Labels
+    $(document).on('change', '.custom-file-input', function(e) {
+        var fileName = e.target.files[0] ? e.target.files[0].name : 'Pilih file';
+        $(e.target).next('.custom-file-label').text(fileName);
+    });
+
+    // Auto open modals on validation errors
+    @if($errors->has('current_password') || $errors->has('new_password'))
+        $('#modalChangePassword').modal('show');
+    @elseif($errors->any())
+        $('#modalEditProfile').modal('show');
+    @endif
 </script>
 @endpush

@@ -1,73 +1,53 @@
 @extends('layouts.auth')
 
-@section('card-class', 'card-primary')
-
-@section('title', 'Login')
-
+@section('title', 'Masuk')
+@section('subtitle', 'Login untuk mengakses panel HRD & Super Admin')
 
 @section('content')
-<div class="login-box">
-        <form action="{{ route('login') }}" method="POST">
-        @csrf
-        <div class="input-group mb-3">
-          <input type="text" name="name" class="form-control @error('name') is-invalid @enderror" placeholder="Name" value="{{ old('name') }}" required autofocus>
-          <div class="input-group-append">
-            <div class="input-group-text">
-              <span class="fas fa-user"></span>
-            </div>
-          </div>
-          @error('name')
-              <span class="invalid-feedback" role="alert">
-                  <strong>{{ $message }}</strong>
-              </span>
-          @enderror
-        </div>
-        <div class="input-group mb-3">
-          <input type="password" name="password" class="form-control @error('password') is-invalid @enderror" placeholder="Password" required>
-          <div class="input-group-append">
-            <div class="input-group-text">
-              <span class="fas fa-lock"></span>
-            </div>
-          </div>
-          @error('password')
-              <span class="invalid-feedback" role="alert">
-                  <strong>{{ $message }}</strong>
-              </span>
-          @enderror
-        </div>
-        <div class="row">
-          <!-- /.col -->
-          <div class="col-4">
-            <button type="submit" class="btn btn-block btn-primary">Masuk</button> 
-          </div>
 
-          <!-- /.col -->
-        </div>          
-      </form>
-
-      @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
-          <i class="fas fa-check-circle mr-1"></i> {{ session('success') }}
-          <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
-        </div>
-      @endif
-
-      <div class="social-auth-links text-center mt-2 mb-3">
-        <hr>
-      </div>
-<div class="row">
-  <div class="col-6">
-      <p class="mb-1 mt-3 text-left">
-        <a href="{{ route('password.forgot') }}">Lupa Password</a>
-      </p>
+@if($errors->any())
+  <div class="alert alert-danger">
+    <ul class="error-list">
+      @foreach($errors->all() as $error)
+        <li><i class="fas fa-times-circle mr-1"></i> {{ $error }}</li>
+      @endforeach
+    </ul>
   </div>
-  <div class="col-6">
-      <p class="mb-1 mt-3 text-right">
-        <a href="{{ route('register') }}" class="text-center">Belum punya akun?
-      </p>
-</div>
-</div>
-</div>
+@endif
 
+<form action="{{ route('login') }}" method="POST">
+  @csrf
+
+  <div class="form-group">
+    <label>Alamat Email</label>
+    <input type="email" name="email"
+      class="form-control @error('email') is-invalid @enderror"
+      placeholder="nama@perusahaan.com"
+      value="{{ old('email') }}" required autofocus>
+    @error('email')
+      <span class="invalid-feedback">{{ $message }}</span>
+    @enderror
+  </div>
+
+  <div class="form-group">
+    <label>Kata Sandi</label>
+    <input type="password" name="password"
+      class="form-control @error('password') is-invalid @enderror"
+      placeholder="••••••••" required>
+    @error('password')
+      <span class="invalid-feedback">{{ $message }}</span>
+    @enderror
+  </div>
+
+  <button type="submit" class="btn-submit" style="margin-top:8px">
+    Masuk ke Dashboard
+  </button>
+</form>
+
+<div class="auth-divider"><span>atau</span></div>
+
+<div class="auth-links">
+  <a href="{{ route('password.forgot') }}">Lupa kata sandi?</a>
+</div>
 
 @endsection

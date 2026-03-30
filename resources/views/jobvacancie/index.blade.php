@@ -39,8 +39,11 @@
                                 <th>No</th>
                                 <th>Nama Posisi</th>
                                 <th>Departemen</th>
+                                <th>Divisi</th>
                                 <th>Deskripsi</th>
                                 <th>Batas Tanggal</th>
+                                <th>Tipe</th>
+                                <th>Gaji</th>
                                 <th>Requirements</th>
                                 <th>Status</th>
                                 <th>Aksi</th>
@@ -52,11 +55,27 @@
                                 <td>{{ $loop->iteration }}</td>
                                 <td>{{ $jobVacancie->title }}</td>
                                 <td>{{ $jobVacancie->departement->name }}</td>
+                                <td>{{ $jobVacancie->division->name ?? '-' }}</td>
                                 <td>{{ $jobVacancie->description }}</td>
-                                <td>{{ $jobVacancie->expired_at }}</td>
+                                <td>{{ $jobVacancie->expired_at ? date('d-m-Y', strtotime($jobVacancie->expired_at)) : '' }}</td>
+                                <td>
+                                    @if($jobVacancie->job_type)
+                                        <span class="badge badge-info">{{ strtoupper($jobVacancie->job_type) }}</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if($jobVacancie->salary_type === 'negotiate')
+                                        Negotiate
+                                    @elseif($jobVacancie->salary_type)
+                                        Rp {{ number_format($jobVacancie->salary_nominal, 0, ',', '.') }} / {{ $jobVacancie->salary_type }}
+                                    @endif
+                                </td>
                                 <td>
                                     @php
-                                        $reqs = json_decode($jobVacancie->requirements, true);
+                                        $reqs = $jobVacancie->requirements;
+                                        if (is_string($reqs)) {
+                                            $reqs = json_decode($reqs, true) ?: [];
+                                        }
                                     @endphp
                                     @if(is_array($reqs))
                                         <ul>
@@ -77,12 +96,12 @@
                                         <label class="custom-control-label" for="statusSwitch{{ $jobVacancie->vacancies_id }}">{{ ucfirst($jobVacancie->status) }}</label>
                                     </div>
                                 </td>
-                                <td>
-                                    <div class="btn-group">
+                                <td style="white-space: nowrap;">
+                                    <div class="d-inline-flex align-items-center" style="gap: 5px;">
                                         <button type="button" class="btn btn-warning btn-sm" data-toggle="modal" data-target="#modal-edit-{{ $jobVacancie->vacancies_id }}" title="Edit">
-                                            <i class="fas fa-edit"></i>
+                                            <i class="fas fa-edit text-white"></i>
                                         </button>
-                                        <form action="{{ route('jobvacancie.destroy', $jobVacancie->vacancies_id) }}" method="POST" style="display:inline;">
+                                        <form action="{{ route('jobvacancie.destroy', $jobVacancie->vacancies_id) }}" method="POST" class="m-0 p-0">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Hapus posisi ini?')" title="Hapus">
@@ -142,6 +161,22 @@ $(document).ready(function() {
     
     $(document).on('click', '.remove-requirement', function() {
         $(this).closest('.requirement-item').remove();
+    });
+
+    $(document).on('click', '.add-hr', function() {
+        // Clone the first HR item options but clear selection
+        var firstItem = $(this).closest('.form-group').find('.hr-item').first();
+        var clone = firstItem.clone();
+        clone.find('select').val('');
+        $(this).closest('.form-group').find('.hr-container').append(clone);
+    });
+    
+    $(document).on('click', '.remove-hr', function() {
+        if ($(this).closest('.hr-container').find('.hr-item').length > 1) {
+            $(this).closest('.hr-item').remove();
+        } else {
+            $(this).closest('.hr-item').find('select').val('');
+        }
     });
 });
 </script>

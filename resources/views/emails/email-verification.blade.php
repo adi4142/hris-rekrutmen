@@ -1,38 +1,22 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Verifikasi Akun</title>
-    <style>
-        body { font-family: 'Arial', sans-serif; line-height: 1.6; color: #333; }
-        .container { width: 80%; margin: 20px auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px; background-color: #f9f9f9; }
-        .header { text-align: center; border-bottom: 2px solid #ffc107; padding-bottom: 10px; margin-bottom: 20px; }
-        .code-box { background-color: #fff; border: 2px dashed #ffc107; padding: 15px; text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 5px; color: #d9534f; margin: 20px 0; }
-        .footer { font-size: 12px; color: #777; margin-top: 30px; text-align: center; }
-        .warning { color: #856404; background-color: #fff3cd; border: 1px solid #ffeeba; padding: 10px; border-radius: 5px; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h2>HRIS System - Verifikasi Email</h2>
-        </div>
-        <p>Halo <strong>{{ $userName }}</strong>,</p>
-        <p>Terima kasih telah mendaftar sebagai <strong>{{ ucfirst($roleName) }}</strong> di sistem HRIS.</p>
-        <p>Untuk alasan keamanan, akses ke dashboard {{ $roleName }} memerlukan verifikasi email tambahan. Silakan masukkan kode di bawah ini pada halaman verifikasi:</p>
-        
-        <div class="code-box">
-            {{ $verificationCode }}
-        </div>
+@extends('emails.layout')
 
-        <div class="warning">
-            <strong>Peringatan:</strong> Jangan bagikan kode ini kepada siapapun. Kode ini bersifat rahasia dan hanya digunakan untuk mengaktivasi hak akses {{ $roleName }} Anda.
-        </div>
+@section('title', 'Verifikasi Akun - ' . config('app.name'))
 
-        <p>Jika Anda tidak merasa melakukan pendaftaran ini, silakan abaikan email ini.</p>
-        
-        <div class="footer">
-            &copy; {{ date('Y') }} HRIS Absensi & Rekrutmen. All rights reserved.
-        </div>
+@section('content')
+    <h2 style="color: #0d6efd;">Verifikasi Email</h2>
+    <p>Halo <strong>{{ $userName }}</strong>,</p>
+    <p>Terima kasih telah mendaftar sebagai <strong>{{ ucfirst($roleName) }}</strong> di sistem HRIS. Untuk alasan keamanan, akses ke dashboard {{ $roleName }} memerlukan verifikasi email tambahan.</p>
+    
+    <p>Silakan masukkan kode berikut pada halaman verifikasi:</p>
+    
+    <div style="background-color: #f1f5f9; border: 2px dashed #0d6efd; padding: 20px; text-align: center; margin: 30px 0; border-radius: 8px;">
+        <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #1e293b; font-family: monospace;">{{ $verificationCode }}</span>
     </div>
-</body>
-</html>
+
+    <div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; border-radius: 4px; font-size: 13px; color: #856404; margin-bottom: 20px;">
+        <strong><i class="fas fa-exclamation-triangle"></i> Peringatan:</strong> Jangan bagikan kode ini kepada siapapun. Kode ini bersifat rahasia dan hanya digunakan untuk mengaktivasi hak akses {{ $roleName }} Anda.
+    </div>
+
+    <p style="font-size: 13px; color: #64748b;">Jika Anda tidak merasa melakukan pendaftaran ini, silakan abaikan email ini.</p>
+
+@endsection

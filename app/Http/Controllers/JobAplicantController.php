@@ -10,6 +10,9 @@ use App\User;
 use App\Role;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\ApplicantAccountCreatedMail;
+
 
 class JobAplicantController extends Controller
 {
@@ -18,9 +21,19 @@ class JobAplicantController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        $jobApplicants = JobApplicant::all();
+        $query = JobApplicant::query();
+
+        if ($request->search) {
+            $query->where(function($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->search . '%')
+                  ->orWhere('email', 'like', '%' . $request->search . '%')
+                  ->orWhere('phone', 'like', '%' . $request->search . '%');
+            });
+        }
+
+        $jobApplicants = $query->paginate(50);
         return view('jobapplicant.index', compact('jobApplicants'));
     }
 
@@ -82,26 +95,50 @@ class JobAplicantController extends Controller
         $validationRules = [
             'vacancies_id' => 'required|exists:job_vacancies,vacancies_id',
             'required_files.*' => 'nullable|mimes:pdf,doc,docx,jpg,jpeg,png|max:10240',
+            'cv_file' => 'required|mimes:pdf,doc,docx|max:3072',
         ];
 
         if (!$jobApplicant) {
             $validationRules['name'] = 'required';
-            $validationRules['email'] = 'required|email|unique:job_applicants,email';
+            $validationRules['email'] = 'required|email'; // Unique removed to allow re-apply
             $validationRules['phone'] = 'required';
             $validationRules['address'] = 'required';
             $validationRules['date_of_birth'] = 'required';
-            $validationRules['gender'] = 'required|in:Male,Female';
+            $validationRules['gender'] = 'required|in:male,female';
         }
 
         $request->validate($validationRules);
 
-        $data = $request->only(['name', 'email', 'phone', 'address', 'date_of_birth', 'gender']);
-        
-        // Map dynamic files to specific applicant fields if possible
-        $fileFields = ['cv_file', 'cover_letter', 'portfolio', 'last_diploma', 'transcript', 'supporting_certificates', 'work_experience'];
+        // Manual check for active applications if email exists
+        if (!$jobApplicant) {
+            $existing = JobApplicant::where('email', $request->email)->first();
+            if ($existing) {
+                $hasActive = \App\JobApplication::where('job_applicant_id', $existing->job_applicant_id)
+                    ->whereNotIn('status', ['accepted', 'rejected', 'hired'])
+                    ->exists();
+                if ($hasActive) {
+                    return back()->with('error', 'Email Anda sudah terdaftar dengan lamaran yang sedang aktif. Silakan tunggu hingga proses seleksi selesai atau gunakan email lain.');
+                }
+                $jobApplicant = $existing;
+            }
+        }
 
+        $data = $request->only(['name', 'email', 'phone', 'address', 'date_of_birth', 'gender']);
+        $data['cv_file'] = '-'; // Default placeholder as it's now handled per-vacancy
+        
         // Process dynamic required documents
         $uploadedDocs = [];
+
+        // 0. Simpan CV (Wajib di setiap lamaran sekarang)
+        if ($request->hasFile('cv_file')) {
+            $path = $request->file('cv_file')->store('application_cvs', 'public');
+            $uploadedDocs[] = [
+                'name' => 'Curriculum Vitae (CV)',
+                'path' => $path,
+                'type' => 'cv'
+            ];
+        }
+
         if ($request->hasFile('required_files')) {
             foreach ($request->file('required_files') as $docName => $file) {
                 if ($file && $file->isValid()) {
@@ -112,10 +149,8 @@ class JobAplicantController extends Controller
                         'type' => 'required'
                     ];
 
-                    // Try to map to profile fields
+                    // Map only non-CV files to specific applicant fields if they exist in mapping
                     $mapping = [
-                        'CV' => 'cv_file',
-                        'Curriculum Vitae' => 'cv_file',
                         'Foto' => 'photo',
                         'Ijazah' => 'last_diploma',
                         'Transkrip' => 'transcript',
@@ -134,64 +169,38 @@ class JobAplicantController extends Controller
         }
 
         if (!$jobApplicant) {
-            $data['user_id'] = auth()->id();
-            $jobApplicant = JobApplicant::create($data);
+            // Cek apakah email sudah ada di JobApplicant (mungkin pernah melamar tapi tidak punya akun)
+            $jobApplicant = JobApplicant::where('email', $data['email'])->first();
+            
+            if (!$jobApplicant) {
+                // Pelamar Benar-benar Baru -> Cukup buat data pelamar saja, tanpa User account
+                $jobApplicant = JobApplicant::create($data);
+                \Illuminate\Support\Facades\Log::info('Berhasil membuat profil pelamar baru tanpa akun user: ' . $data['email']);
+            } else {
+                // Update data lama jika email cocok
+                $jobApplicant->update(array_filter($data));
+            }
         } else {
-            // Only update fields that are present in request
+            // Pelamar sedang login (mungkin Admin mendaftarkan pelamar atau pelamar lama yang masih punya akun)
             $jobApplicant->update(array_filter($data));
         }
 
         // Create job application
-        JobApplication::create([
+        $application = JobApplication::create([
             'vacancies_id' => $request->vacancies_id,
             'job_applicant_id' => $jobApplicant->job_applicant_id,
-            'status' => 'pending',
+            'status' => 'applied',
             'documents' => $uploadedDocs,
         ]);
 
+        // Email konfirmasi lamaran dinonaktifkan atas permintaan user.
+
+
         if (auth()->check()) {
-            if (auth()->user()->role && strtolower(auth()->user()->role->name) == 'tamu') {
-                return redirect()->route('applicant.dashboard')->with('success', 'Lamaran berhasil dikirim!');
-            }
-            return redirect()->route('jobapplicant.index')->with('success', 'Lamaran berhasil dikirim!');
+            return redirect()->route('lowongan')->with('success', 'Lamaran berhasil dikirim! Silakan memantau email Anda untuk mengetahui progress lamaran Anda.');
         }
 
-        return redirect()->route('lowongan')->with('success', 'Lamaran berhasil dikirim! Kami akan menghubungi Anda melalui email jika Anda lolos tahap awal.');
-    }
-
-    public function createUserAccount(Request $request, $id)
-    {
-        $applicant = JobApplicant::findOrFail($id);
-
-        if ($applicant->user_id) {
-            return back()->with('error', 'Pendaftar ini sudah memiliki akun.');
-        }
-
-        // Generate password
-        $password = Str::random(10);
-        
-        // Find Pelamar/Tamu role
-        $role = Role::where('name', 'Pelamar')->orWhere('name', 'Tamu')->first();
-        
-        if (!$role) {
-            return back()->with('error', 'Role Pelamar tidak ditemukan di sistem.');
-        }
-
-        $user = User::create([
-            'name' => $applicant->name,
-            'email' => $applicant->email,
-            'password' => Hash::make($password),
-            'roles_id' => $role->roles_id,
-            'status' => 'active',
-            'is_role_verified' => true
-        ]);
-
-        $applicant->update(['user_id' => $user->user_id]);
-
-        // In a real app, you would send an email here
-        // Mail::to($user->email)->send(new ApplicantAccountCreated($user, $password));
-
-        return back()->with('success', 'Akun berhasil dibuat untuk ' . $applicant->name . '. Password: ' . $password . ' (Pastikan Anda menyalin password ini untuk diberikan ke pelamar jika sistem email belum aktif)');
+        return redirect()->route('lowongan')->with('success', 'Lamaran berhasil dikirim! Silakan memantau email Anda untuk mengetahui progress lamaran Anda.');
     }
 
     /**
@@ -232,7 +241,7 @@ class JobAplicantController extends Controller
             'phone' => 'required',
             'address' => 'required',
             'date_of_birth' => 'required',
-            'gender' => 'required|in:Male,Female',
+            'gender' => 'required|in:male,female',
             'cv_file' => 'nullable|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120',
             'cover_letter' => 'nullable|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120',
             'portfolio' => 'nullable|mimes:pdf,doc,docx,jpg,jpeg,png|max:10240',
@@ -278,19 +287,98 @@ class JobAplicantController extends Controller
      */
     public function destroy($id)
     {
-        $jobApplicant = JobApplicant::findOrFail($id);
+        $jobApplicant = JobApplicant::with('applications')->findOrFail($id);
         
-        if ($jobApplicant->cv_file && \Storage::disk('public')->exists($jobApplicant->cv_file)) {
-            \Storage::disk('public')->delete($jobApplicant->cv_file);
-        }
+        \Illuminate\Support\Facades\DB::beginTransaction();
+        try {
+            // 1. Hapus hasil seleksi untuk semua lamaran pelamar ini
+            foreach ($jobApplicant->applications as $app) {
+                \App\SelectionApplicant::where('application_id', $app->application_id)->delete();
+                $app->delete();
+            }
 
-        $jobApplicant->delete();
-        return redirect()->route('jobapplicant.index');
+            // 2. Hapus file-file dokumen pelamar
+            $fileFields = ['cv_file', 'cover_letter', 'portfolio', 'last_diploma', 'transcript', 'supporting_certificates', 'work_experience', 'photo'];
+            foreach ($fileFields as $field) {
+                if ($jobApplicant->$field && \Illuminate\Support\Facades\Storage::disk('public')->exists($jobApplicant->$field)) {
+                    \Illuminate\Support\Facades\Storage::disk('public')->delete($jobApplicant->$field);
+                }
+            }
+
+            // 3. Simpan user_id sebelum data pelamar dihapus
+            $userId = $jobApplicant->user_id;
+
+            // 4. Hapus data pelamar
+            $jobApplicant->delete();
+
+            // 5. Hapus akun User jika ini adalah akun pelamar
+            if ($userId) {
+                User::where('user_id', $userId)->delete();
+            }
+
+            \Illuminate\Support\Facades\DB::commit();
+            return redirect()->route('jobapplicant.index')->with('success', 'Data pelamar, semua riwayat lamaran, dan akun user berhasil dihapus.');
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\DB::rollback();
+            return redirect()->route('jobapplicant.index')->with('error', 'Gagal menghapus data: ' . $e->getMessage());
+        }
     }
 
     public function totalApplicant()
     {
         $totalApplicant = JobApplicant::count();
         return response()->json(['totalApplicant' => $totalApplicant]);
+    }
+
+    /**
+     * Get applicant profile detail for AJAX
+     */
+    public function getProfile($id)
+    {
+        $applicant = JobApplicant::findOrFail($id);
+        
+        // Format data to be sent
+        $data = [
+            'name' => $applicant->name,
+            'email' => $applicant->email,
+            'phone' => $applicant->phone ?: '-',
+            'address' => $applicant->address ?: '-',
+            'date_of_birth' => $applicant->date_of_birth ? \Carbon\Carbon::parse($applicant->date_of_birth)->format('d F Y') : '-',
+            'gender' => $applicant->gender == 'male' ? 'Laki-laki' : ($applicant->gender == 'female' ? 'Perempuan' : '-'),
+            'photo' => $applicant->photo ? asset('storage/' . $applicant->photo) : asset('img/user2-160x160.jpg')
+        ];
+
+        return response()->json($data);
+    }
+
+    /**
+     * Get applicant documents for AJAX
+     */
+    public function getDocuments($id)
+    {
+        $applicant = JobApplicant::findOrFail($id);
+        
+        $docsData = [
+            ["title" => "CV", "url" => $applicant->cv_file && $applicant->cv_file != '-' ? asset("storage/" . $applicant->cv_file) : null, "icon" => "fa-file-pdf"],
+            ["title" => "Surat Lamaran", "url" => $applicant->cover_letter ? asset("storage/" . $applicant->cover_letter) : null, "icon" => "fa-envelope-open-text"],
+            ["title" => "Portofolio", "url" => $applicant->portfolio ? asset("storage/" . $applicant->portfolio) : null, "icon" => "fa-briefcase"],
+            ["title" => "Ijazah", "url" => $applicant->last_diploma ? asset("storage/" . $applicant->last_diploma) : null, "icon" => "fa-graduation-cap"],
+            ["title" => "Transkrip", "url" => $applicant->transcript ? asset("storage/" . $applicant->transcript) : null, "icon" => "fa-file-invoice"],
+            ["title" => "Sertifikat", "url" => $applicant->supporting_certificates ? asset("storage/" . $applicant->supporting_certificates) : null, "icon" => "fa-certificate"],
+            ["title" => "Pengalaman Kerja", "url" => $applicant->work_experience ? asset("storage/" . $applicant->work_experience) : null, "icon" => "fa-user-tie"]
+        ];
+
+        return response()->json($docsData);
+    }
+
+    public function cleanupRejected()
+    {
+        try {
+            \Illuminate\Support\Facades\Artisan::call('applicants:delete-rejected');
+            $output = \Illuminate\Support\Facades\Artisan::output();
+            return back()->with('success', 'Proses pembersihan selesai. ' . $output);
+        } catch (\Exception $e) {
+            return back()->with('error', 'Gagal menjalankan pembersihan: ' . $e->getMessage());
+        }
     }
 }

@@ -21,7 +21,7 @@ class EmailVerificationMail extends Mailable
      *
      * @return void
      */
-    public function __ construct($userName, $roleName, $token)
+    public function __construct($userName, $roleName, $token)
     {
         $this->userName = $userName;
         $this->roleName = $roleName;

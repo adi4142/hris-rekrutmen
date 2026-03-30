@@ -6,8 +6,10 @@ use Illuminate\Http\Request;
 use App\JobVacancie;
 use App\Departement;
 use App\Position;
+
 use App\ActivityLog;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class JobVacancieController extends Controller
 {
@@ -18,14 +20,30 @@ class JobVacancieController extends Controller
      */
     public function index()
     {
-        $jobVacancies = JobVacancie::all();
+        $user = auth()->user();
+        $query = JobVacancie::with(['departement', 'position', 'hrs']);
+        
+        // If HR (not Super Admin), only show assigned ones
+        if ($user && !$user->isSuperAdmin()) {
+             $query->whereHas('hrs', function($q) use ($user) {
+                 $q->where('job_vacancy_hr.user_id', $user->user_id);
+             });
+        }
+
+        $jobVacancies = $query->get();
         $departements = Departement::all();
         $positions = Position::all();
+        $selections = \App\Selection::all();
+        
+        $hrUsers = \App\User::whereHas('role', function ($q) {
+            $q->where('name', 'NOT LIKE', '%Pelamar%')
+              ->where('name', 'NOT LIKE', '%Tamu%');
+        })->get();
 
         JobVacancie::whereDate('expired_at', '<=', Carbon::today())
             ->where('status', 'open')
             ->update(['status' => 'closed']);
-        return view('jobvacancie.index', compact('jobVacancies', 'departements', 'positions'));
+        return view('jobvacancie.index', compact('jobVacancies', 'departements', 'positions', 'selections', 'hrUsers'));
     }
 
     /**
@@ -37,7 +55,14 @@ class JobVacancieController extends Controller
     {
         $departements = Departement::all();
         $positions = Position::all();
-        return view('jobvacancie.create', compact('departements', 'positions'));
+        $selections = \App\Selection::all();
+        
+        $hrUsers = \App\User::whereHas('role', function ($q) {
+            $q->where('name', 'NOT LIKE', '%Pelamar%')
+              ->where('name', 'NOT LIKE', '%Tamu%');
+        })->get();
+
+        return view('jobvacancie.create', compact('departements', 'positions', 'selections', 'hrUsers'));
     }
 
     /**
@@ -51,28 +76,55 @@ class JobVacancieController extends Controller
         $request->validate([
             'departement_id' => 'required|exists:departements,departement_id',
             'position_id' => 'required|exists:positions,position_id',
-            'description' => 'nullable',
-            'expired_at' => 'nullable|date',
+            'description' => 'required', // Migration says not null, though 02_09 makes it nullable
+            'expired_at' => 'required|date',
             'requirements' => 'nullable|array',
             'required_documents' => 'nullable|array',
+            'job_type' => 'required|in:full time,part time,contract',
+            'salary_type' => 'required|in:daily,weekly,monthly,negotiate',
+            'salary_nominal' => 'required_unless:salary_type,negotiate|nullable',
+            'quota' => 'required|integer|min:1',
         ]);
 
-        $position = Position::findOrFail($request->position_id);
+        try {
+            DB::beginTransaction();
+            $position = Position::findOrFail($request->position_id);
 
-        JobVacancie::create([
-            'title' => $position->name,
-            'departement_id' => $request->departement_id,
-            'position_id' => $request->position_id,
-            'description' => $request->description,
-            'expired_at' => $request->expired_at,
-            'requirements' => $request->requirements ? json_encode(array_values(array_filter($request->requirements))) : null,
-            'required_documents' => $request->required_documents ? json_encode($request->required_documents) : null,
-            'status' => 'closed',
-        ]);
+            // Clean salary nominal
+            $salaryNominal = $request->salary_nominal;
+            if ($salaryNominal) {
+                $salaryNominal = (float) str_replace('.', '', $salaryNominal);
+            }
 
-        ActivityLog::log('Membuat lowongan baru: ' . $position->name, 'Lowongan Kerja');
+            $job = JobVacancie::create([
+                'title' => $position->name,
+                'departement_id' => $request->departement_id,
+                'position_id' => $request->position_id,
+                'description' => $request->description,
+                'expired_at' => $request->expired_at,
+                'requirements' => $request->requirements ? array_values(array_filter($request->requirements)) : [],
+                'required_documents' => $request->required_documents ? $request->required_documents : [],
+                'job_type' => $request->job_type,
+                'salary_type' => $request->salary_type,
+                'salary_nominal' => $request->salary_type === 'negotiate' ? null : $salaryNominal,
+                'quota' => $request->quota,
+                'status' => 'open',
+            ]);
 
-        return redirect()->route('jobvacancie.index');
+            if ($request->has('hr_ids')) {
+                $hrIds = array_filter($request->hr_ids);
+                if (!empty($hrIds)) {
+                    $job->hrs()->sync($hrIds);
+                }
+            }
+
+            DB::commit();
+            ActivityLog::log('Membuat lowongan baru: ' . $position->name, 'Lowongan Kerja');
+            return redirect()->route('jobvacancie.index')->with('success', 'Lowongan kerja berhasil disimpan.');
+        } catch (\Exception $e) {
+            DB::rollback();
+            return redirect()->back()->withInput()->with('error', 'Gagal menyimpan lowongan: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -94,10 +146,17 @@ class JobVacancieController extends Controller
      */
     public function edit($id)
     {
-        $editJobVacancie = JobVacancie::findOrFail($id);
+        $editJobVacancie = JobVacancie::with('hrs')->findOrFail($id);
         $departements = Departement::all();
         $positions = Position::all();
-        return view('jobvacancie.edit', compact('editJobVacancie', 'departements', 'positions'));
+        $selections = \App\Selection::all();
+
+        $hrUsers = \App\User::whereHas('role', function ($q) {
+            $q->where('name', 'NOT LIKE', '%Pelamar%')
+              ->where('name', 'NOT LIKE', '%Tamu%');
+        })->get();
+
+        return view('jobvacancie.edit', compact('editJobVacancie', 'departements', 'positions', 'selections', 'hrUsers'));
     }
 
     /**
@@ -112,28 +171,57 @@ class JobVacancieController extends Controller
         $request->validate([
             'departement_id'=>'required|exists:departements,departement_id',
             'position_id' => 'required|exists:positions,position_id',
-            'description' => 'nullable',
-            'expired_at' => 'nullable|date',
+            'description' => 'required',
+            'expired_at' => 'required|date',
             'requirements' => 'nullable|array',
             'required_documents' => 'nullable|array',
+            'job_type' => 'required|in:full time,part time,contract',
+            'salary_type' => 'required|in:daily,weekly,monthly,negotiate',
+            'salary_nominal' => 'required_unless:salary_type,negotiate|nullable',
+            'quota' => 'required|integer|min:1',
         ]);
 
-        $editJobVacancie = JobVacancie::findOrFail($id);
-        $position = Position::findOrFail($request->position_id);
-        
-        $editJobVacancie->update([
-            'title' => $position->name,
-            'departement_id' => $request->departement_id,
-            'position_id' => $request->position_id,
-            'description' => $request->description,
-            'expired_at' => $request->expired_at,
-            'requirements' => $request->requirements ? json_encode(array_values(array_filter($request->requirements))) : null,
-            'required_documents' => $request->required_documents ? json_encode($request->required_documents) : null,
-        ]);
+        try {
+            DB::beginTransaction();
+            $editJobVacancie = JobVacancie::findOrFail($id);
+            $position = Position::findOrFail($request->position_id);
+            
+            // Clean salary nominal
+            $salaryNominal = $request->salary_nominal;
+            if ($salaryNominal) {
+                $salaryNominal = (float) str_replace('.', '', $salaryNominal);
+            }
 
-        ActivityLog::log('Memperbarui lowongan: ' . $position->name, 'Lowongan Kerja');
+            $editJobVacancie->update([
+                'title' => $position->name,
+                'departement_id' => $request->departement_id,
+                'position_id' => $request->position_id,
+                'description' => $request->description,
+                'expired_at' => $request->expired_at,
+                'requirements' => $request->requirements ? array_values(array_filter($request->requirements)) : [],
+                'required_documents' => $request->required_documents ? $request->required_documents : [],
+                'job_type' => $request->job_type,
+                'salary_type' => $request->salary_type,
+                'salary_nominal' => $request->salary_type === 'negotiate' ? null : $salaryNominal,
+                'quota' => $request->quota,
+            ]);
 
-        return redirect()->route('jobvacancie.index')->with('success', 'Lowongan kerja berhasil diperbarui.');
+            if ($request->has('hr_ids')) {
+                $hrIds = array_filter($request->hr_ids);
+                if (!empty($hrIds)) {
+                    $editJobVacancie->hrs()->sync($hrIds);
+                } else {
+                    $editJobVacancie->hrs()->detach();
+                }
+            }
+
+            DB::commit();
+            ActivityLog::log('Memperbarui lowongan: ' . $position->name, 'Lowongan Kerja');
+            return redirect()->route('jobvacancie.index')->with('success', 'Lowongan kerja berhasil diperbarui.');
+        } catch (\Exception $e) {
+            DB::rollback();
+            return redirect()->back()->withInput()->with('error', 'Gagal memperbarui lowongan: ' . $e->getMessage());
+        }
     }
 
     /**

@@ -83,23 +83,6 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label for="cv_file">CV (PDF)</label>
-                                <div class="input-group">
-                                    <div class="custom-file">
-                                        <input type="file" class="custom-file-input @error('cv_file') is-invalid @enderror" id="cv_file" name="cv_file" accept=".pdf">
-                                        <label class="custom-file-label" for="cv_file">
-                                            {{ ($applicant->cv_file ?? false) ? 'Ganti CV (PDF)' : 'Pilih file CV' }}
-                                        </label>
-                                    </div>
-                                </div>
-                                <small class="text-muted">File PDF maksimal 2MB</small>
-                                @error('cv_file')
-                                    <span class="text-danger small">{{ $message }}</span>
-                                @enderror
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
                                 <label for="photo">Foto Profil</label>
                                 <div class="input-group">
                                     <div class="custom-file">
@@ -111,6 +94,7 @@
                             </div>
                         </div>
                     </div>
+                    
                 </div>
                 <div class="card-footer">
                     <button type="submit" class="btn btn-primary">

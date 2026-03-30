@@ -2,16 +2,33 @@
 
 @section('title', 'Kelola User & Role')
 @section('card_tools')
-<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modal-create">
-    <i class="fas fa-plus"></i> Tambah
-</button>
+<div class="d-flex align-items-center">
+    <form action="{{ route('superadmin.users.index') }}" method="GET" class="mr-2">
+        <div class="input-group input-group-sm" style="width: 250px;">
+            <input type="text" name="search" class="form-control" placeholder="Cari nama, email atau role..." value="{{ request('search') }}">
+            <div class="input-group-append">
+                @if(request('search'))
+                <a href="{{ route('superadmin.users.index') }}" class="btn btn-danger">
+                    <i class="fas fa-times"></i>
+                </a>
+                @endif
+                <button type="submit" class="btn btn-default">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </div>
+    </form>
+    <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#modal-create">
+        <i class="fas fa-plus mr-1"></i> Tambah
+    </button>
+</div>
 @endsection
 @section('page_title', 'Kelola User')
 
 @section('content')
                 @if(session('success'))
                     <div class="alert alert-success alert-dismissible fade show" role="alert">
-                        {{ session('success') }}
+                        {!! session('success') !!}
                         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
@@ -25,7 +42,6 @@
                             <th>Nama</th>
                             <th>Email</th>
                             <th>Role</th>
-                            <th>Status</th>
                             <th>Aksi</th>
                         </tr>
                     </thead>
@@ -39,15 +55,6 @@
                                 <span class="badge badge-info">{{ $user->role->name ?? 'No Role' }}</span>
                             </td>
                             <td>
-                                @if($user->status == 'active')
-                                    <span class="badge badge-success">Aktif</span>
-                                @elseif($user->status == 'suspended')
-                                    <span class="badge badge-danger">Suspended</span>
-                                @else
-                                    <span class="badge badge-secondary">{{ $user->status }}</span>
-                                @endif
-                            </td>
-                            <td>
                                 <div class="btn-group">
                                     <button type="button" class="btn btn-warning btn-sm" data-toggle="modal" data-target="#modal-edit-user-{{ $user->user_id }}">
                                         <i class="fas fa-edit"></i>
@@ -55,12 +62,6 @@
                                     <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#modal-reset-{{ $user->user_id }}" title="Reset Password">
                                         <i class="fas fa-key"></i>
                                     </button>
-                                    <form action="{{ route('superadmin.users.toggle-status', $user->user_id) }}" method="POST" class="d-inline">
-                                        @csrf
-                                        <button type="submit" class="btn {{ $user->status == 'active' ? 'btn-danger' : 'btn-success' }} btn-sm" title="{{ $user->status == 'active' ? 'Suspend' : 'Activate' }}">
-                                            <i class="fas {{ $user->status == 'active' ? 'fa-ban' : 'fa-check' }}"></i>
-                                        </button>
-                                    </form>
                                     <form action="{{ route('superadmin.users.destroy', $user->user_id) }}" method="POST" class="d-inline" onsubmit="return confirm('Yakin ingin menghapus user ini?')">
                                         @csrf
                                         @method('DELETE')
@@ -142,7 +143,7 @@
                     </tbody>
                 </table>
             <div class="card-footer clearfix">
-                {{ $users->links() }}
+                {{ $users->appends(request()->input())->links() }}
             </div>
 
 {{-- Modal Add User --}}
@@ -165,10 +166,6 @@
                     <div class="form-group">
                         <label>Email</label>
                         <input type="email" name="email" class="form-control" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Password</label>
-                        <input type="password" name="password" class="form-control" required minlength="8">
                     </div>
                     <div class="form-group">
                         <label>Role</label>

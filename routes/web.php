@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\DepartementController;
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\DivisionController;
+
 use App\Http\Controllers\PositionController;
 use App\Http\Controllers\UsersController;
 use App\Http\Controllers\SelectionController;
@@ -12,11 +12,10 @@ use App\Http\Controllers\JobAplicantController;
 use App\Http\Controllers\JobVacancieController;
 use App\Http\Controllers\SelectionApplicantController;
 use App\Http\Controllers\JobApplicationController;
+use App\Http\Controllers\RecruitmentBatchController;
 use App\Http\Controllers\LoginController;
-use App\Http\Controllers\RegisterController;
-use App\Http\Controllers\RoleVerificationController;
+
 use App\Http\Controllers\ForgotPasswordController;
-use App\Http\Controllers\EmailVerificationController;
 
 // Import Dashboard Controllers untuk setiap role
 use App\Http\Controllers\SuperAdminDashboardController;
@@ -44,12 +43,12 @@ use App\Http\Controllers\ApplicantDashboardController;
 // ============================================================================
 
 // Form lamaran publik (Pindahkan ke paling atas agar tidak terkena middleware)
-Route::get('/jobapplicant/create', [\App\Http\Controllers\JobAplicantController::class, 'create'])->name('jobapplicant.create');
-Route::post('/jobapplicant', [\App\Http\Controllers\JobAplicantController::class, 'store'])->name('jobapplicant.store');
+Route::get('/jobapplicant/create', [JobAplicantController::class, 'create'])->name('jobapplicant.create');
+Route::post('/jobapplicant', [JobAplicantController::class, 'store'])->name('jobapplicant.store');
 
 Route::get('/', function () {
     return view('landing');
-});
+})->name('home');
 
 // Route lowongan publik untuk guest
 Route::get('/lowongan', function () {
@@ -59,9 +58,16 @@ Route::get('/lowongan', function () {
     return view('lowongan', compact('jobVacancies'));
 })->name('lowongan');
 
+
 Route::get('/lowongan/{id}', function ($id) {
-    $vacancy = \App\JobVacancie::with(['departement', 'position'])
-                ->findOrFail($id);
+    $vacancy = \App\JobVacancie::with([
+        'departement', 
+        'position',
+        'batches' => function($q) { 
+            $q->where('status', 'active')->orderBy('date', 'asc'); 
+        },
+        'batches.stages.selection'
+    ])->findOrFail($id);
     return view('lowongan_detail', compact('vacancy'));
 })->name('lowongan.detail');
 
@@ -77,9 +83,14 @@ Route::get('/storage/{path}', function ($path) {
     return response()->file($filePath);
 })->where('path', '.*');
 
-// Email verification click link
-Route::get('/email-verify/link/{token}', [\App\Http\Controllers\EmailVerificationController::class, 'verifyLink'])
-    ->name('emails.verify.link');
+// Offering response (Signed URL)
+Route::get('/offering/respond/{application_id}/{response}', [JobApplicationController::class, 'respondOffering'])
+    ->name('offering.respond')
+    ->middleware('signed');
+
+Route::post('/offering/negotiate/{application_id}', [JobApplicationController::class, 'submitNegotiation'])
+    ->name('offering.negotiate')
+    ->middleware(['auth', 'throttle:10,1']);
 
 // ============================================================================
 // AUTHENTICATION ROUTES
@@ -90,13 +101,7 @@ Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login']);
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
-// Registration Routes
-// Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
-// Route::post('/register', [RegisterController::class, 'register']);
-
-// Registration khusus Pelamar
-Route::get('/register', [\App\Http\Controllers\ApplicantRegisterController::class, 'showRegistrationForm'])->name('register');
-Route::post('/register', [\App\Http\Controllers\ApplicantRegisterController::class, 'register'])->name('applicant.register.submit');
+// Registrasi telah dinonaktifkan. Akun dibuat oleh Super Admin melalui panel manajemen.
 
 
 // ============================================================================
@@ -104,18 +109,18 @@ Route::post('/register', [\App\Http\Controllers\ApplicantRegisterController::cla
 // ============================================================================
 
 Route::middleware(['auth'])->group(function () {
-    Route::get('/role-verify', [RoleVerificationController::class, 'showVerifyForm'])
-        ->name('role.verify.form');
-    Route::post('/role-verify', [RoleVerificationController::class, 'verify'])
-        ->name('role.verify');
+    // Route::get('/role-verify', [RoleVerificationController::class, 'showVerifyForm'])
+    //     ->name('role.verify.form');
+    // Route::post('/role-verify', [RoleVerificationController::class, 'verify'])
+    //     ->name('role.verify');
 
     // Email verification after registration
-    Route::get('/email-verify', [EmailVerificationController::class, 'showVerifyForm'])
-        ->name('emails.verify.form');
-    Route::post('/email-verify', [EmailVerificationController::class, 'verify'])
-        ->name('emails.verify');
-    Route::post('/email-verify/resend', [EmailVerificationController::class, 'resend'])
-        ->name('emails.verify.resend');
+    // Route::get('/email-verify', [EmailVerificationController::class, 'showVerifyForm'])
+    //     ->name('emails.verify.form');
+    // Route::post('/email-verify', [EmailVerificationController::class, 'verify'])
+    //     ->name('emails.verify');
+    // Route::post('/email-verify/resend', [EmailVerificationController::class, 'resend'])
+    //     ->name('emails.verify.resend');
 
     // Forced password change (Admin/HRD first login)
     Route::get('/change-password', [\App\Http\Controllers\PasswordChangeController::class, 'showChangeForm'])
@@ -132,7 +137,8 @@ Route::middleware(['auth'])->group(function () {
 Route::get('/forgot-password', [ForgotPasswordController::class, 'showForgotForm'])
     ->name('password.forgot');
 Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLink'])
-    ->name('password.send.link');
+    ->name('password.send.link')
+    ->middleware('throttle:5,1');
 Route::get('/verify-email-reset', [ForgotPasswordController::class, 'verifyEmail'])
     ->name('password.verify.email');
 Route::get('/reset-password', [ForgotPasswordController::class, 'showResetForm'])
@@ -184,9 +190,7 @@ Route::middleware(['auth', 'role:superadmin', 'role.verified'])->prefix('superad
     Route::post('/users/{id}/reset-password', [SuperAdminUserController::class, 'resetPassword'])->name('superadmin.users.reset-password');
     Route::post('/users/{id}/toggle-status', [SuperAdminUserController::class, 'toggleStatus'])->name('superadmin.users.toggle-status');
 
-    // System Settings
-    Route::get('/settings', [SuperAdminDashboardController::class, 'settings'])->name('superadmin.settings');
-    Route::post('/settings', [SuperAdminDashboardController::class, 'updateSettings'])->name('superadmin.settings.update');
+
 
     // Activity Logs
     Route::get('/logs', [SuperAdminDashboardController::class, 'logs'])->name('superadmin.logs');
@@ -240,14 +244,6 @@ Route::middleware(['auth', 'role:hrd', 'role.verified'])->prefix('hrd')->group(f
 
 Route::middleware(['auth', 'role:admin,hrd,superadmin', 'role.verified'])->group(function () {
 
-    // Division Management
-    Route::get('/division', [DivisionController::class, 'index'])->name('division.index');
-    Route::get('/division/create', [DivisionController::class, 'create'])->name('division.create');
-    Route::post('/division', [DivisionController::class, 'store'])->name('division.store');
-    Route::get('/division/{id}/edit', [DivisionController::class, 'edit'])->name('division.edit');
-    Route::put('/division/{id}', [DivisionController::class, 'update'])->name('division.update');
-    Route::delete('/division/{id}', [DivisionController::class, 'destroy'])->name('division.destroy');
-
     // Departement Management
     Route::get('/departement', [DepartementController::class, 'index'])->name('departement.index');
     Route::get('/departement/create', [DepartementController::class, 'create'])->name('departement.create');
@@ -277,6 +273,9 @@ Route::middleware(['auth', 'role:admin,hrd,superadmin', 'role.verified'])->group
     Route::get('/jobapplicant/{id}/edit', [JobAplicantController::class, 'edit'])->name('jobapplicant.edit');
     Route::put('/jobapplicant/{id}', [JobAplicantController::class, 'update'])->name('jobapplicant.update');
     Route::delete('/jobapplicant/{id}', [JobAplicantController::class, 'destroy'])->name('jobapplicant.destroy');
+    Route::get('/jobapplicant/{id}/profile-ajax', [JobAplicantController::class, 'getProfile'])->name('jobapplicant.profile.ajax');
+    Route::get('/jobapplicant/{id}/documents-ajax', [JobAplicantController::class, 'getDocuments'])->name('jobapplicant.documents.ajax');
+    Route::post('/jobapplicant/cleanup-rejected', [JobAplicantController::class, 'cleanupRejected'])->name('jobapplicant.cleanupRejected');
 
     // Job Vacancy Management
     Route::get('/jobvacancie', [JobVacancieController::class, 'index'])->name('jobvacancie.index');
@@ -296,10 +295,32 @@ Route::middleware(['auth', 'role:admin,hrd,superadmin', 'role.verified'])->group
     Route::delete('/selectionapplicant/{id}', [SelectionApplicantController::class, 'destroy'])->name('selectionapplicant.destroy');
 
     // Job Application Management
-    // Job Application Management (New Flow)
-    Route::get('/jobapplication', [JobApplicationController::class, 'index'])->name('jobapplication.index');
+    // Recruitment Batch Management (New)
+    Route::get('/recruitment-batch', [RecruitmentBatchController::class, 'index'])->name('recruitment-batch.index');
+    Route::get('/recruitment-batch/create/{vacancyId}', [RecruitmentBatchController::class, 'create'])->name('recruitment-batch.create');
+    Route::post('/recruitment-batch', [RecruitmentBatchController::class, 'store'])->name('recruitment-batch.store');
+    Route::get('/recruitment-batch/{id}/edit', [RecruitmentBatchController::class, 'edit'])->name('recruitment-batch.edit');
+    Route::put('/recruitment-batch/{id}', [RecruitmentBatchController::class, 'update'])->name('recruitment-batch.update');
+    Route::delete('/recruitment-batch/{id}', [RecruitmentBatchController::class, 'destroy'])->name('recruitment-batch.destroy');
+
+    // Job Application Management (Updated Flow)
+    Route::get('/jobapplication', [JobApplicationController::class, 'manageApplications'])->name('jobapplication.index');
+    Route::get('/jobapplication/manage', [JobApplicationController::class, 'manageApplications'])->name('jobapplication.manage');
+    Route::post('/jobapplication/batch-process', [JobApplicationController::class, 'batchProcess'])->name('jobapplication.batchProcess');
+    
+    // New Workflow routes
+    Route::post('/jobapplication/assign-batch', [JobApplicationController::class, 'assignBatch'])->name('jobapplication.assignBatch');
+    Route::post('/jobapplication/input-score', [JobApplicationController::class, 'inputScore'])->name('jobapplication.inputScore');
+    Route::post('/jobapplication/finalize-offering', [JobApplicationController::class, 'finalizeOffering'])->name('jobapplication.finalizeOffering');
+    Route::post('/jobapplication/promote-to-offering', [JobApplicationController::class, 'promoteToOffering'])->name('jobapplication.promoteToOffering');
+    Route::get('/jobapplication/offering/preview/{id}', [JobApplicationController::class, 'previewOfferingLetter'])->name('jobapplication.previewOffering');
+    Route::post('/jobapplication/offering/approve', [JobApplicationController::class, 'approveOffering'])->name('jobapplication.approveOffering');
+    Route::post('/jobapplication/fail-selection', [JobApplicationController::class, 'failSelection'])->name('jobapplication.failSelection');
+    Route::post('/jobapplication/respond-negotiation', [JobApplicationController::class, 'respondNegotiation'])->name('jobapplication.respondNegotiation');
+
     Route::get('/jobapplication/applicant/{applicantId}', [JobApplicationController::class, 'showApplicantDetails'])->name('jobapplication.applicant');
     Route::get('/jobapplication/{id}', [JobApplicationController::class, 'show'])->name('jobapplication.show');
+    Route::get('/jobapplication/documents/{id}', [JobApplicationController::class, 'getDocuments'])->name('jobapplication.documents.ajax');
     Route::put('/jobapplication/{id}/status', [JobApplicationController::class, 'updateStatus'])->name('jobapplication.updateStatus');
     
     // Selection Stages within Job Application
@@ -311,15 +332,13 @@ Route::middleware(['auth', 'role:admin,hrd,superadmin', 'role.verified'])->group
     Route::post('/job-applications/{id}/send-email-update', [JobApplicationController::class, 'sendSelectionUpdateEmail'])->name('jobapplication.sendEmailUpdate');
     
     Route::delete('/jobapplication/{id}', [JobApplicationController::class, 'destroy'])->name('jobapplication.destroy');
-    Route::post('/chat', [\App\Http\Controllers\ChatbotController::class, 'chat'])
-        ->name('hrd.chat');
 
 });
 
 // Shared Job Applicant Routes (Accessible by all roles/public)
 
 Route::middleware(['auth', 'role:admin,superadmin', 'role.verified'])->group(function () {
-    Route::post('/jobapplicant/{id}/create-account', [JobAplicantController::class, 'createUserAccount'])->name('jobapplicant.create-account');
+
 });
 
 Route::middleware(['auth'])->group(function () {
@@ -358,9 +377,9 @@ Route::middleware(['auth', 'role:pelamar,tamu'])->prefix('applicant')->group(fun
     Route::get('/applications/{id}', [ApplicantDashboardController::class, 'applicationDetail'])
         ->name('applicant.application.detail');
     
-    // Chatbot HR Assistant AI
-    Route::post('/chat', [\App\Http\Controllers\ChatbotController::class, 'chat'])
-        ->name('applicant.chat');
+    // Ganti Password Sukarela
+    Route::post('/password-change', [\App\Http\Controllers\PasswordChangeController::class, 'changePassword'])
+        ->name('applicant.password.change');
 });
 
 

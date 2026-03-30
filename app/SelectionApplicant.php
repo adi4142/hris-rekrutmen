@@ -13,11 +13,17 @@ class SelectionApplicant extends Model
     protected $fillable = [
         'selection_id',
         'application_id',
+        'batch_stage_id',
         'score',
         'notes',
         'status',
-        'selection_date',
+        'description',
     ];
+
+    public function batchStage()
+    {
+        return $this->belongsTo(RecruitmentBatchStage::class, 'batch_stage_id', 'id');
+    }
 
     public function jobapplication()
     {
@@ -27,5 +33,10 @@ class SelectionApplicant extends Model
     public function selection()
     {
         return $this->belongsTo(Selection::class, 'selection_id', 'selection_id');
+    }
+
+    public function aspectScores()
+    {
+        return $this->hasMany(SelectionApplicantScore::class, 'selection_applicant_id', 'selection_applicant_id');
     }
 }

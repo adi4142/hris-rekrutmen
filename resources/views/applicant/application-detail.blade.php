@@ -45,87 +45,140 @@
                 @if($application->jobVacancie && $application->jobVacancie->description)
                 <h5><i class="fas fa-file-alt"></i> Deskripsi Pekerjaan</h5>
                 <div class="mb-4">
-                    {!! nl2br(e($application->jobVacancie->description)) !!}
+                    z
                 </div>
                 @endif
             </div>
         </div>
 
-        {{-- Proses Seleksi --}}
-        {{-- Proses Seleksi --}}
-        @if($application->selectionApplicant && $application->selectionApplicant->count() > 0)
+        {{-- Proses Seleksi & Jadwal --}}
+        @php
+            $hasBatch = $application->batch && $application->batch->stages->count() > 0;
+            $hasSelectionData = $application->selectionApplicant && $application->selectionApplicant->count() > 0;
+        @endphp
+
+        @if($hasBatch || $hasSelectionData)
         <div class="card card-info card-outline">
             <div class="card-header">
                 <h3 class="card-title">
-                    <i class="fas fa-tasks"></i> Riwayat Proses Seleksi
+                    <i class="fas fa-tasks"></i> Alur & Jadwal Seleksi 
+                    @if($application->batch) 
+                        <span class="badge badge-info ml-2">{{ $application->batch->name }}</span>
+                    @endif
                 </h3>
             </div>
             <div class="card-body">
                 <div class="timeline">
-                    @foreach($application->selectionApplicant as $selection)
-                        @php
-                            $bgClass = 'bg-gray';
-                            $icon = 'fa-clock';
-                            if($selection->status == 'passed') {
-                                $bgClass = 'bg-success';
-                                $icon = 'fa-check';
-                            } elseif($selection->status == 'failed') {
-                                $bgClass = 'bg-danger';
-                                $icon = 'fa-times';
-                            } elseif($selection->status == 'process') {
-                                $bgClass = 'bg-primary';
-                                $icon = 'fa-spinner fa-spin';
-                            } elseif($selection->status == 'unprocess') {
-                                $bgClass = 'bg-warning';
-                                $icon = 'fa-hourglass-start';
-                            }
-                        @endphp
+                    @php
+                        // Grouping logic:
+                        // If hasBatch, we use batch stages.
+                        // If not, we use selectionApplicant data.
+                        $timelineItems = collect();
 
-                        <!-- timeline time label -->
+                        if($hasBatch) {
+                            $stages = $application->batch->stages->sortBy('date')->values();
+                            foreach($stages as $stage) {
+                                // Find matching result
+                                $result = $application->selectionApplicant->where('selection_id', $stage->selection_id)->first();
+                                $timelineItems->push([
+                                    'date' => $stage->date,
+                                    'start_time' => $stage->start_time,
+                                    'end_time' => $stage->end_time,
+                                    'location' => $stage->location,
+                                    'title' => $stage->selection->name,
+                                    'result' => $result,
+                                    'is_batch_stage' => true
+                                ]);
+                            }
+                        } else {
+                            foreach($application->selectionApplicant as $sel) {
+                                $timelineItems->push([
+                                    'date' => $sel->selection_date, // fallback
+                                    'title' => $sel->selection->name,
+                                    'result' => $sel,
+                                    'is_batch_stage' => false
+                                ]);
+                            }
+                        }
+                        
+                        $groupedItems = $timelineItems->groupBy(function($item) {
+                            return $item['date'] ? \Carbon\Carbon::parse($item['date'])->format('Y-m-d') : 'TBA';
+                        });
+                    @endphp
+
+                    @foreach($groupedItems as $dateStr => $items)
                         <div class="time-label">
-                            <span class="{{ $bgClass }}">
-                                {{ $selection->selection_date ? \Carbon\Carbon::parse($selection->selection_date)->translatedFormat('d F Y') : 'Jadwal Menyusul' }}
+                            <span class="{{ $dateStr == 'TBA' ? 'bg-gray' : 'bg-primary' }}">
+                                {{ $dateStr == 'TBA' ? 'Jadwal Menyusul' : \Carbon\Carbon::parse($dateStr)->translatedFormat('d F Y') }}
                             </span>
                         </div>
-                        
-                        <div>
-                            <i class="fas {{ $icon }} {{ $bgClass }}"></i>
-                            <div class="timeline-item">
-                                <span class="time"><i class="far fa-clock"></i> {{ $selection->updated_at->diffForHumans() }}</span>
-                                <h3 class="timeline-header">
-                                    <strong>{{ $selection->selection->name ?? 'Tahapan Seleksi' }}</strong>
-                                </h3>
 
-                                <div class="timeline-body">
-                                    <div class="row">
-                                        <div class="col-sm-6">
-                                            <strong>Status:</strong>
-                                            @if($selection->status == 'passed')
-                                                <span class="badge badge-success">Lulus</span>
-                                            @elseif($selection->status == 'failed')
-                                                <span class="badge badge-danger">Tidak Lulus</span>
-                                            @elseif($selection->status == 'process')
-                                                <span class="badge badge-primary">Sedang Berlangsung</span>
-                                            @else
-                                                <span class="badge badge-warning">Belum Diproses</span>
-                                            @endif
-                                        </div>
-                                        @if($selection->status == 'passed' || $selection->status == 'failed')
-                                            <div class="col-sm-6">
-                                                <strong>Skor:</strong> {{ $selection->score > 0 ? $selection->score : '-' }}
-                                            </div>
+                        @foreach($items as $item)
+                            @php
+                                $res = $item['result'];
+                                $status = $res ? $res->status : 'unprocess';
+                                
+                                $bgClass = 'bg-gray'; $icon = 'fa-clock';
+                                if($status == 'passed') { $bgClass = 'bg-success'; $icon = 'fa-check'; }
+                                elseif($status == 'failed') { $bgClass = 'bg-danger'; $icon = 'fa-times'; }
+                                elseif($status == 'process') { $bgClass = 'bg-primary'; $icon = 'fa-spinner fa-spin'; }
+                                elseif($status == 'unprocess') { $bgClass = 'bg-warning'; $icon = 'fa-calendar'; }
+                            @endphp
+
+                            <div>
+                                <i class="fas {{ $icon }} {{ $bgClass }}"></i>
+                                <div class="timeline-item shadow-sm">
+                                    <span class="time">
+                                        @if(isset($item['start_time']))
+                                            <i class="far fa-clock"></i> {{ \Carbon\Carbon::parse($item['start_time'])->format('H:i') }}
                                         @endif
-                                    </div>
-                                    @if($selection->notes && ($selection->status == 'passed' || $selection->status == 'failed'))
-                                        <div class="mt-2 p-2 bg-light rounded border">
-                                            <strong>Catatan:</strong><br>
-                                            {{ $selection->notes }}
+                                    </span>
+                                    <h3 class="timeline-header">
+                                        <strong>{{ $item['title'] }}</strong>
+                                        @if($status == 'passed') <span class="badge badge-success float-right">Lulus</span>
+                                        @elseif($status == 'failed') <span class="badge badge-danger float-right">Gagal</span>
+                                        @elseif($status == 'process') <span class="badge badge-primary float-right">Proses</span>
+                                        @else <span class="badge badge-secondary float-right">Belum Mulai</span>
+                                        @endif
+                                    </h3>
+
+                                    <div class="timeline-body">
+                                        <div class="row">
+                                            <div class="col-md-7">
+                                                @if(isset($item['location']) && $item['location'])
+                                                    <p class="mb-1"><i class="fas fa-map-marker-alt text-danger mr-1"></i> {{ $item['location'] }}</p>
+                                                @endif
+                                                
+                                                @if($res && $res->notes)
+                                                    <div class="mt-2 p-2 bg-light rounded border-left border-info">
+                                                        <span class="text-muted font-italic">Catatan:</span><br>
+                                                        {{ $res->notes }}
+                                                    </div>
+                                                @endif
+                                            </div>
+                                            
+                                            <div class="col-md-5">
+                                                @if($res && $res->aspectScores->count() > 0)
+                                                    <h6 class="font-weight-bold mb-2">Penilaian:</h6>
+                                                    @foreach($res->aspectScores as $as)
+                                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                                            <span class="text-muted">{{ $as->aspect->name ?? 'Aspek' }}</span>
+                                                            <div class="stars-display text-warning">
+                                                                @for($i=1; $i<=5; $i++)
+                                                                    <i class="{{ $i <= $as->score ? 'fas' : 'far' }} fa-star"></i>
+                                                                @endfor
+                                                            </div>
+                                                        </div>
+                                                    @endforeach
+                                                @endif
+                                            </div>
                                         </div>
-                                    @endif
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        @endforeach
                     @endforeach
+
                     <div>
                         <i class="far fa-clock bg-gray"></i>
                     </div>
@@ -133,9 +186,9 @@
             </div>
         </div>
         @else
-        <div class="alert alert-info">
+        <div class="alert alert-info shadow-sm">
             <h5><i class="icon fas fa-info"></i> Belum Ada Jadwal Seleksi</h5>
-            Saat ini belum ada tahapan seleksi yang dijadwalkan untuk lamaran Anda. Mohon menunggu informasi selanjutnya.
+            Saat ini belum ada tahapan seleksi yang dijadwalkan untuk lamaran Anda. Mohon menunggu informasi selanjutnya dari tim HR kami.
         </div>
         @endif
     </div>
@@ -149,9 +202,9 @@
                 </h3>
             </div>
             <div class="card-body text-center">
-                @if($application->status == 'pending')
+                @if($application->status == 'pending' || $application->status == 'applied')
                     <span class="badge badge-warning" style="font-size: 1.5rem; padding: 15px 30px;">
-                        <i class="fas fa-clock"></i> Menunggu Review
+                        <i class="fas fa-clock"></i> Review Berkas
                     </span>
                     <p class="mt-3 text-muted">
                         Lamaran Anda sedang dalam proses review oleh tim HRD.
@@ -178,7 +231,6 @@
                         Lamaran Anda sedang dalam proses seleksi oleh tim HRD.
                     </p>
                 @endif
-
                 <hr>
                 <p class="mb-1"><strong>Tanggal Melamar:</strong></p>
                 <p>{{ $application->created_at->format('d M Y H:i') }}</p>

@@ -12,14 +12,8 @@
                 </div>
                 <form action="{{ route('jobapplicant.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
+                    <input type="hidden" name="vacancies_id" value="{{ old('vacancies_id', $selectedVacancyId ?? '') }}">
                     <div class="card-body p-4">
-                        @if($applicant)
-                            <div class="alert alert-info alert-dismissible bg-light-info border-info mb-4">
-                                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-                                <h5><i class="icon fas fa-info-circle"></i> Selamat Datang Kembali!</h5>
-                                Data profil Anda sudah tersimpan. Anda hanya perlu memilih posisi yang dilamar dan mengunggah dokumen terbaru jika diperlukan.
-                            </div>
-                        @endif
 
                         <!-- Bagian 1: Data Diri -->
                         <div class="mb-4">
@@ -30,7 +24,7 @@
                                         <label for="name">Nama Lengkap <span class="text-danger">*</span></label>
                                         <input type="text" name="name" class="form-control @error('name') is-invalid @enderror" 
                                             value="{{ old('name', $applicant->name ?? '') }}" 
-                                            placeholder="Masukkan nama lengkap" {{ $applicant ? 'readonly' : 'required' }}>
+                                            placeholder="Masukkan nama lengkap" required>
                                         @error('name')
                                             <span class="invalid-feedback">{{ $message }}</span>
                                         @enderror
@@ -41,7 +35,7 @@
                                         <label for="email">Email <span class="text-danger">*</span></label>
                                         <input type="email" name="email" class="form-control @error('email') is-invalid @enderror" 
                                             value="{{ old('email', $applicant->email ?? '') }}" 
-                                            placeholder="Masukkan email aktif" {{ $applicant ? 'readonly' : 'required' }}>
+                                            placeholder="Masukkan email aktif" required>
                                         @error('email')
                                             <span class="invalid-feedback">{{ $message }}</span>
                                         @enderror
@@ -50,9 +44,9 @@
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="phone">Nomor HP <span class="text-danger">*</span></label>
-                                        <input type="text" name="phone" class="form-control @error('phone') is-invalid @enderror" 
+                                        <input type="number" name="phone" class="form-control @error('phone') is-invalid @enderror" 
                                             value="{{ old('phone', $applicant->phone ?? '') }}" 
-                                            placeholder="Contoh: 08123456789" {{ $applicant ? 'readonly' : 'required' }}>
+                                            placeholder="Contoh: 08123456789" required>
                                         @error('phone')
                                             <span class="invalid-feedback">{{ $message }}</span>
                                         @enderror
@@ -61,43 +55,27 @@
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="gender">Jenis Kelamin <span class="text-danger">*</span></label>
-                                        @if($applicant)
-                                            <input type="text" class="form-control" value="{{ $applicant->gender == 'male' ? 'Laki-laki' : 'Perempuan' }}" readonly>
-                                            <input type="hidden" name="gender" value="{{ $applicant->gender }}">
-                                        @else
-                                            <select name="gender" class="form-control @error('gender') is-invalid @enderror" required>
-                                                <option value="">-- Pilih Gender --</option>
-                                                <option value="Male" {{ old('gender') == 'Male' ? 'selected' : '' }}>Laki-laki</option>
-                                                <option value="Female" {{ old('gender') == 'Female' ? 'selected' : '' }}>Perempuan</option>
-                                            </select>
-                                        @endif
+                                        <div class="d-flex mt-2">
+                                            <div class="custom-control custom-radio mr-4">
+                                                <input class="custom-control-input" type="radio" name="gender" id="genderMale" value="male" {{ old('gender', $applicant->gender ?? '') == 'male' ? 'checked' : '' }} required>
+                                                <label class="custom-control-label font-weight-normal" for="genderMale">Laki-laki</label>
+                                            </div>
+                                            <div class="custom-control custom-radio">
+                                                <input class="custom-control-input" type="radio" name="gender" id="genderFemale" value="female" {{ old('gender', $applicant->gender ?? '') == 'female' ? 'checked' : '' }} required>
+                                                <label class="custom-control-label font-weight-normal" for="genderFemale">Perempuan</label>
+                                            </div>
+                                        </div>
                                         @error('gender')
-                                            <span class="invalid-feedback">{{ $message }}</span>
+                                            <div class="text-danger small mt-1">{{ $message }}</div>
                                         @enderror
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="date_of_birth">Tanggal Lahir <span class="text-danger">*</span></label>
-                                        <input type="date" name="date_of_birth" class="form-control @error('date_of_birth') is-invalid @enderror" 
-                                            value="{{ old('date_of_birth', $applicant->date_of_birth ?? '') }}" {{ $applicant ? 'readonly' : 'required' }}>
+                                        <input type="date" name="date_of_birth" class="form-control @error('date_of_birth') is-invalid @enderror" max="{{ date('Y-m-d') }}" 
+                                            value="{{ old('date_of_birth', $applicant->date_of_birth ?? '') }}" required>
                                         @error('date_of_birth')
-                                            <span class="invalid-feedback">{{ $message }}</span>
-                                        @enderror
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="vacancies_id">Posisi yang Dilamar <span class="text-danger">*</span></label>
-                                        <select name="vacancies_id" id="vacancies_id" class="form-control @error('vacancies_id') is-invalid @enderror" required onchange="window.location.href = '{{ route('jobapplicant.create') }}?vacancies_id=' + this.value">
-                                            <option value="">-- Pilih Posisi --</option>
-                                            @foreach($jobVacancies as $v)
-                                                <option value="{{ $v->vacancies_id }}" {{ (old('vacancies_id', $selectedVacancyId ?? '') == $v->vacancies_id) ? 'selected' : '' }}>
-                                                    {{ $v->title }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                        @error('vacancies_id')
                                             <span class="invalid-feedback">{{ $message }}</span>
                                         @enderror
                                     </div>
@@ -106,7 +84,7 @@
                                     <div class="form-group">
                                         <label for="address">Alamat Domisili <span class="text-danger">*</span></label>
                                         <textarea name="address" class="form-control @error('address') is-invalid @enderror" 
-                                            rows="2" placeholder="Masukkan alamat lengkap" {{ $applicant ? 'readonly' : 'required' }}>{{ old('address', $applicant->address ?? '') }}</textarea>
+                                            rows="2" placeholder="Masukkan alamat lengkap" required>{{ old('address', $applicant->address ?? '') }}</textarea>
                                         @error('address')
                                             <span class="invalid-feedback">{{ $message }}</span>
                                         @enderror
@@ -122,22 +100,54 @@
                                     @php
                                         $requiredDocs = [];
                                         if (isset($vacancy) && $vacancy->required_documents) {
-                                            $requiredDocs = json_decode($vacancy->required_documents, true) ?: [];
+                                            $docs = (is_array($vacancy->required_documents)) ? $vacancy->required_documents : (json_decode($vacancy->required_documents, true) ?: []);
+                                            // Jangan masukkan CV lagi jika sudah ada di input khusus
+                                            $requiredDocs = array_filter($docs, function($doc) {
+                                                return !in_array(strtolower($doc), ['cv', 'curriculum vitae']);
+                                            });
                                         }
                                     @endphp
 
                                     @if($vacancy)
-                                        <div class="alert alert-light border  mb-4">
-                                             <h6 class="border-bottom pb-2 mb-3 text-secondary font-weight-bold"><i class="fas fa-file-upload mr-2"></i>Dokumen yang Diperlukan untuk Posisi: <u>{{ $vacancy->title }}</u></h6>
-                                            @if(!empty($requiredDocs))
+                                        <div class="alert alert-light border mb-4">
+                                            <div class="mb-3 p-3 bg-light border-left border-primary rounded shadow-sm">
+                                                <label class="text-primary font-weight-bold d-block"><i class="fas fa-file-pdf mr-1"></i> Dokumen Utama</label>
+                                                <div class="form-group mb-1">
+                                                    <label class="small font-weight-bold">Curriculum Vitae (CV) <span class="text-danger">*</span></label>
+                                                    <div class="custom-file">
+                                                        <input type="file" name="cv_file" class="custom-file-input @error('cv_file') is-invalid @enderror" id="doc_cv_fixed" required accept=".pdf,.doc,.docx">
+                                                        <label class="custom-file-label" for="doc_cv_fixed">Pilih file CV Anda...</label>
+                                                    </div>
+                                                    @error('cv_file')
+                                                        <span class="text-danger small">{{ $message }}</span>
+                                                    @enderror
+                                                </div>
+                                                <small class="text-muted">Format PDF/DOCX, Max 3MB</small>
+                                            </div>
+
+                                            @if(count($requiredDocs) > 0)
+                                                <h6 class="border-bottom pb-2 my-3 text-secondary font-weight-bold"><i class="fas fa-plus-circle mr-2"></i>Dokumen Tambahan:</h6>
+                                            @endif
+                                            
+                                            @if($errors->any())
+                                                <div class="alert alert-danger py-2 px-3 mb-3">
+                                                    <ul class="mb-0 small">
+                                                        @foreach($errors->all() as $error)
+                                                            <li>{{ $error }}</li>
+                                                        @endforeach
+                                                    </ul>
+                                                </div>
+                                            @endif
+
+                                            @if($requiredDocs !== [])
                                                 <div class="row">
-                                                    @foreach($requiredDocs as $docName)
+                                                    @foreach($requiredDocs as $index => $docName)
                                                         <div class="col-md-6 mb-3">
                                                             <div class="form-group mb-0">
                                                                 <label class="small font-weight-bold">{{ $docName }} <span class="text-danger">*</span></label>
                                                                 <div class="custom-file">
-                                                                    <input type="file" name="required_files[{{ $docName }}]" class="custom-file-input @error('required_files.'.$docName) is-invalid @enderror" id="doc_{{ $loop->index }}" required>
-                                                                    <label class="custom-file-label" for="doc_{{ $loop->index }}">Pilih file {{ $docName }}...</label>
+                                                                    <input type="file" name="required_files[{{ $docName }}]" class="custom-file-input @error('required_files.'.$docName) is-invalid @enderror" id="doc_{{ $index }}" required>
+                                                                    <label class="custom-file-label" for="doc_{{ $index }}">Pilih file {{ $docName }}...</label>
                                                                 </div>
                                                                 @error('required_files.'.$docName)
                                                                     <span class="text-danger small">{{ $message }}</span>
@@ -146,13 +156,11 @@
                                                         </div>
                                                     @endforeach
                                                 </div>
-                                            @else
-                                                <p class="text-muted mb-0">Tidak ada dokumen khusus yang diwajibkan untuk posisi ini.</p>
                                             @endif
                                         </div>
                                     @else
                                         <div class="alert alert-warning">
-                                            <i class="fas fa-exclamation-triangle mr-2"></i> Silakan pilih <strong>Posisi yang Dilamar</strong> terlebih dahulu untuk melihat dokumen kerja yang diperlukan.
+                                            <i class="fas fa-exclamation-triangle mr-2"></i> Silakan pilih <strong>Posisi yang Dilamar</strong> terlebih dahulu untuk melihat persyaratan dokumen.
                                         </div>
                                     @endif
                                 </div>
@@ -186,6 +194,7 @@
     .bg-light-info { background-color: #e7f3ff; }
     .border-info { border-color: #b8daff; }
     .custom-file-label::after { content: "Cari"; }
+    .custom-control-label { cursor: pointer; }
 </style>
 @endpush
 @endsection

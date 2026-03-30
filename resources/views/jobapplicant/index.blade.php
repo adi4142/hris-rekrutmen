@@ -4,16 +4,44 @@
 @section('page_title', 'Manajemen Pendaftar')
 
 @section('content')
-
-        <div class="table-responsive">
-            <table class="table table-hover">
-                <thead class="thead-light">
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <h3 class="card-title font-weight-bold m-0"><i class="fas fa-users mr-2 text-primary"></i> Manajemen Pendaftar</h3>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center">
+                            <form action="{{ route('jobapplicant.index') }}" method="GET" class="flex-grow-1 mr-2">
+                                <div class="input-group">
+                                    <input type="text" name="search" class="form-control" placeholder="Cari pelamar..." value="{{ request('search') }}">
+                                    <div class="input-group-append">
+                                        @if(request('search'))
+                                        <a href="{{ route('jobapplicant.index') }}" class="btn btn-danger border-0">
+                                            <i class="fas fa-times"></i>
+                                        </a>
+                                        @endif
+                                        <button class="btn btn-primary" type="submit">
+                                            <i class="fas fa-search"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="bg-light">
                     <tr>
                         <th>No</th>
                         <th>Nama</th>
                         <th>Kontak</th>
                         <th>Info Diri</th>
-                        <th>Dokumen</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
@@ -35,49 +63,18 @@
                             </small>
                         </td>
                         <td>
-                            @php
-                                $docsData = [
-                                    ["title" => "CV", "url" => $jobApplicant->cv_file ? asset("storage/" . $jobApplicant->cv_file) : null, "icon" => "fa-file-pdf"],
-                                    ["title" => "Surat Lamaran", "url" => $jobApplicant->cover_letter ? asset("storage/" . $jobApplicant->cover_letter) : null, "icon" => "fa-envelope-open-text"],
-                                    ["title" => "Portofolio", "url" => $jobApplicant->portfolio ? asset("storage/" . $jobApplicant->portfolio) : null, "icon" => "fa-briefcase"],
-                                    ["title" => "Ijazah", "url" => $jobApplicant->last_diploma ? asset("storage/" . $jobApplicant->last_diploma) : null, "icon" => "fa-graduation-cap"],
-                                    ["title" => "Transkrip", "url" => $jobApplicant->transcript ? asset("storage/" . $jobApplicant->transcript) : null, "icon" => "fa-file-invoice"],
-                                    ["title" => "Sertifikat", "url" => $jobApplicant->supporting_certificates ? asset("storage/" . $jobApplicant->supporting_certificates) : null, "icon" => "fa-certificate"],
-                                    ["title" => "Pengalaman Kerja", "url" => $jobApplicant->work_experience ? asset("storage/" . $jobApplicant->work_experience) : null, "icon" => "fa-user-tie"]
-                                ];
-                                
-                                $docsCount = 0;
-                                foreach($docsData as $doc) {
-                                    if($doc['url']) $docsCount++;
-                                }
-                            @endphp
-                            
-                            @if($docsCount > 0)
-                                <button type="button" class="btn btn-info btn-sm btn-view-docs" 
-                                    data-name="{{ $jobApplicant->name }}"
-                                    data-docs='@json($docsData)'>
-                                    <i class="fas fa-file-alt mr-1"></i> {{ $docsCount }} Dokumen
-                                </button>
-                            @else
-                                <span class="text-muted small">Tidak ada dokumen</span>
-                            @endif
-                        </td>
-                        <td>
                             <div class="btn-group" role="group">
-                                @if(!$jobApplicant->user_id)
-                                <form action="{{ route('jobapplicant.create-account', $jobApplicant->job_applicant_id) }}" method="POST" style="display:inline;">
-                                    @csrf
-                                    <button type="submit" class="btn btn-success" title="Buat Akun" onclick="return confirm('Buat akun untuk pelamar ini?')">
-                                        <i class="fas fa-user-plus"></i> Buat Akun
-                                    </button>
-                                </form>
-                                @else
-                                <span class="badge badge-success"><i class="fas fa-check"></i> Akun Aktif</span>
+                                @if($jobApplicant->user_id)
+                                    {{-- Status akun aktif dihilangkan sesuai permintaan user --}}
                                 @endif
                                 
-                                <a href="{{ route('jobapplicant.edit', $jobApplicant->job_applicant_id) }}" class="btn btn-warning btn-sm" title="Edit">
-                                    <i class="fas fa-edit"></i>
-                                </a>
+                                <button type="button" class="btn btn-info btn-sm btn-view-profile mr-1" 
+                                    data-id="{{ $jobApplicant->job_applicant_id }}"
+                                    id="modalProfileDetail"
+                                    title="Lihat Profil">
+                                    <i class="fas fa-user text-white"></i>
+                                </button>
+
                                 <form action="{{ route('jobapplicant.destroy', $jobApplicant->job_applicant_id) }}" method="POST" style="display:inline;">
                                     @csrf
                                     @method('DELETE')
@@ -90,26 +87,60 @@
                     </tr>
                     @endforeach
                 </tbody>
-            </table>
+                    </table>
+                </div>
+            </div>
+            @if($jobApplicants->hasPages())
+            <div class="card-footer bg-white">
+                {{ $jobApplicants->appends(['search' => request('search')])->links() }}
+            </div>
+            @endif
         </div>
+    </div>
+</div>
 
-<!-- Modal Dokumen -->
-<div class="modal fade" id="modalDocs" tabindex="-1" role="dialog" aria-labelledby="modalDocsLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content">
-            <div class="modal-header bg-info">
-                <h5 class="modal-title" id="modalDocsLabel font-weight-bold"><i class="fas fa-file-alt mr-2"></i> Dokumen Pelamar: <span id="applicantName"></span></h5>
+{{-- MODAL DETAIL PROFIL --}}
+<div class="modal fade" id="modalProfileDetail" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title font-weight-bold"><i class="fas fa-user-circle mr-2"></i> Detail Profil Pelamar</h5>
                 <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <div class="modal-body">
-                <div id="docsList" class="row">
-                    <!-- Dokumen akan dimuat di sini via JS -->
+            <div class="modal-body p-0">
+                <div class="row no-gutters">
+                    <div class="col-md-4 bg-light text-center p-4 border-right">
+                        <h4 id="p-name" class="font-weight-bold mb-1"></h4>
+                        <p id="p-email" class="text-muted small mb-3"></p>
+                        <div class="badge badge-primary px-3 py-2">PELAMAR</div>
+                    </div>
+                    <div class="col-md-8 p-4">
+                        <h5 class="text-primary border-bottom pb-2 mb-3 font-weight-bold">Informasi Personal</h5>
+                        <div class="row">
+                            <div class="col-sm-6 mb-3">
+                                <label class="small text-muted mb-1 d-block">Nomor Telepon</label>
+                                <div id="p-phone" class="font-weight-bold"></div>
+                            </div>
+                            <div class="col-sm-6 mb-3">
+                                <label class="small text-muted mb-1 d-block">Jenis Kelamin</label>
+                                <div id="p-gender" class="font-weight-bold"></div>
+                            </div>
+                            <div class="col-sm-6 mb-3">
+                                <label class="small text-muted mb-1 d-block">Tanggal Lahir</label>
+                                <div id="p-dob" class="font-weight-bold"></div>
+                            </div>
+                            <div class="col-sm-12 mb-3">
+                                <label class="small text-muted mb-1 d-block">Alamat Lengkap</label>
+                                <div id="p-address" class="text-dark"></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-secondary px-4" data-dismiss="modal">Tutup</button>
             </div>
         </div>
     </div>
@@ -118,39 +149,31 @@
 
 @push('scripts')
 <script>
-$(document).ready(function() {
-    $('.btn-view-docs').on('click', function() {
-        const name = $(this).data('name');
-        const docs = $(this).data('docs');
+    $('.btn-view-profile').on('click', function() {
+        const id = $(this).data('id');
         
-        $('#applicantName').text(name);
-        let docsHtml = '';
-        
-        docs.forEach(doc => {
-            if (doc.url) {
-                docsHtml += `
-                    <div class="col-md-6 mb-3">
-                        <div class="info-box shadow-sm">
-                            <span class="info-box-icon bg-info"><i class="fas ${doc.icon}"></i></span>
-                            <div class="info-box-content">
-                                <span class="info-box-text font-weight-bold">${doc.title}</span>
-                                <div class="mt-2">
-                                    <a href="${doc.url}" target="_blank" class="btn btn-sm btn-primary">
-                                        <i class="fas fa-eye mr-1"></i> Lihat
-                                    </a>
-                                    <a href="${doc.url}" download class="btn btn-sm btn-outline-info ml-1">
-                                        <i class="fas fa-download"></i>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
+        // Reset and show loading
+        $('#p-name, #p-email, #p-phone, #p-address, #p-dob, #p-gender').text('...');
+        $('#p-photo').attr('src', '{{ asset("img/user2-160x160.jpg") }}');
+        $('#modalProfileDetail').modal('show');
+
+        $.ajax({
+            url: `/jobapplicant/${id}/profile-ajax`,
+            method: 'GET',
+            success: function(data) {
+                $('#p-name').text(data.name);
+                $('#p-email').text(data.email);
+                $('#p-phone').text(data.phone);
+                $('#p-address').text(data.address);
+                $('#p-dob').text(data.date_of_birth);
+                $('#p-gender').text(data.gender);
+                $('#p-photo').attr('src', data.photo);
+            },
+            error: function() {
+                alert('Gagal mengambil data profil.');
+                $('#modalProfileDetail').modal('hide');
             }
         });
-        
-        $('#docsList').html(docsHtml);
-        $('#modalDocs').modal('show');
     });
 });
 </script>

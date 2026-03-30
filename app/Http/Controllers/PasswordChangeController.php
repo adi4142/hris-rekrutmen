@@ -27,20 +27,29 @@ class PasswordChangeController extends Controller
     }
 
     /**
-     * Proses ganti password
+     * Proses ganti password sukarela (dari profil)
      */
-    public function updatePassword(Request $request)
+    public function changePassword(Request $request)
     {
         $request->validate([
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'current_password' => 'required',
+            'new_password' => 'required|string|min:8|confirmed',
+        ], [
+            'new_password.confirmed' => 'Konfirmasi password baru tidak cocok.',
+            'new_password.min' => 'Password minimal 8 karakter.'
         ]);
 
         $user = auth()->user();
-        $user->password = Hash::make($request->password);
-        $user->needs_password_change = 0; // Reset flag
+
+        // Cek password saat ini
+        if (!Hash::check($request->current_password, $user->password)) {
+            return redirect()->back()->with('error', 'Password saat ini tidak sesuai.');
+        }
+
+        // Simpan password baru
+        $user->password = Hash::make($request->new_password);
         $user->save();
 
-        return redirect()->route('dashboard')
-            ->with('success', 'Password berhasil diperbarui. Selamat datang di sistem!');
+        return redirect()->back()->with('success', 'Password berhasil diubah.');
     }
 }

@@ -12,10 +12,23 @@ use App\ActivityLog;
 
 class SuperAdminUserController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::with('role')->paginate(10);
-        $roles = Role::all();
+        $query = User::with('role');
+
+        if ($request->search) {
+            $query->where(function($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->search . '%')
+                  ->orWhere('email', 'like', '%' . $request->search . '%')
+                  ->orWhereHas('role', function($q_role) use ($request) {
+                      $q_role->where('name', 'like', '%' . $request->search . '%');
+                  });
+            });
+        }
+
+        $users = $query->paginate(10);
+        // Exclude pelamar & tamu — akun mereka dibuat otomatis saat mengirim lamaran
+        $roles = Role::whereNotIn('name', ['pelamar', 'tamu', 'Pelamar', 'Tamu'])->get();
         return view('superadmin.users.index', compact('users', 'roles'));
     }
 
@@ -37,7 +50,6 @@ class SuperAdminUserController extends Controller
             'roles_id' => $request->roles_id,
             'is_role_verified' => 1, // Super admin created users are verified
             'needs_password_change' => 1, // Force password change on first login
-            'status' => 'active', // Account is active, but needs password change
             'email_verified_at' => now(), // Assume verified as created by Super Admin
         ]);
 
@@ -50,13 +62,11 @@ class SuperAdminUserController extends Controller
                 $user->email,
                 $tempPassword
             ));
+            return back()->with('success', 'User berhasil ditambahkan! <b>Password Sementara: ' . $tempPassword . '</b>. (Email notifikasi berhasil dikirim).');
         } catch (\Exception $e) {
             \Log::error("Gagal mengirim email akun baru: " . $e->getMessage());
-            // Tetap lanjut, tapi kasih info password sementara di flash message jika email gagal
-            return back()->with('success', 'User berhasil ditambahkan. (Email gagal terkirim, Password sementara: ' . $tempPassword . ')');
+            return back()->with('success', 'User berhasil ditambahkan! <b>Password Sementara: ' . $tempPassword . '</b>. (Peringatan: Email gagal terkirim).');
         }
-
-        return back()->with('success', 'User berhasil ditambahkan dan email notifikasi telah dikirim.');
     }
 
     public function update(Request $request, $id)
@@ -95,16 +105,6 @@ class SuperAdminUserController extends Controller
         return back()->with('success', 'Password user berhasil direset. (Password baru: ' . $newPassword . ')');
     }
 
-    public function toggleStatus($id)
-    {
-        $user = User::findOrFail($id);
-        $newStatus = ($user->status == 'active') ? 'suspended' : 'active';
-        $user->update(['status' => $newStatus]);
-
-        ActivityLog::log('Mengubah status user ' . $user->name . ' menjadi ' . $newStatus, 'User Management');
-
-        return back()->with('success', 'Status user berhasil diubah menjadi ' . $newStatus);
-    }
 
     public function destroy($id)
     {

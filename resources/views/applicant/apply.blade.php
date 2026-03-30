@@ -92,7 +92,7 @@
                 <h5><i class="fas fa-list-ul"></i> Persyaratan</h5>
                 <div class="mb-4 d-flex">
                     @php
-                        $reqs = json_decode($vacancy->requirements, true);
+                        $reqs = $vacancy->requirements;
                     @endphp
                     @if(is_array($reqs))
                         <ul>
@@ -141,7 +141,7 @@
                     </a>
                 @else
                     @php
-                        $requiredDocs = json_decode($vacancy->required_documents) ?? [];
+                        $requiredDocs = (is_array($vacancy->required_documents)) ? $vacancy->required_documents : (json_decode($vacancy->required_documents, true) ?? []);
                     @endphp
                     <div class="mb-3">
                         <p><strong>Data Profil:</strong></p>
@@ -156,8 +156,19 @@
                         @csrf
                         
                         <div class="form-group mb-4">
-                            <label class="text-primary"><i class="fas fa-file-upload"></i> Dokumen Yang Diperlukan</label>
-                            <small class="d-block text-muted mb-2">* Wajib diisi sesuai permintaan lowongan ini.</small>
+                            <label class="text-primary font-weight-bold"><i class="fas fa-file-pdf"></i> Dokumen Wajib Utama</label>
+                            
+                            <div class="mb-3 border rounded p-3 bg-light shadow-sm">
+                                <label for="cv_file" class="d-block mb-1">Curriculum Vitae (CV) <span class="text-danger">*</span></label>
+                                <small class="text-muted d-block mb-2">Unggah CV terbaru Anda (Format PDF/DOCX, Max 3MB)</small>
+                                <input type="file" name="cv_file" id="cv_file" class="form-control-file @error('cv_file') is-invalid @enderror btn btn-outline-primary w-100" required accept=".pdf,.doc,.docx">
+                                @error('cv_file')
+                                    <span class="text-danger small">{{ $message }}</span>
+                                @enderror
+                            </div>
+
+                            <label class="text-primary mt-2"><i class="fas fa-file-upload"></i> Dokumen Tambahan Dari Posisi</label>
+                            <small class="d-block text-muted mb-2">* Wajib diisi sesuai kriteria lowongan.</small>
                             
                             @if(count($requiredDocs) > 0)
                                 @foreach($requiredDocs as $docName)

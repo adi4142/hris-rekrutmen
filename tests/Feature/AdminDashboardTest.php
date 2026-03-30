@@ -3,8 +3,8 @@
 namespace Tests\Feature;
 
 use Tests\TestCase;
-use App\Models\User;
-use App\Models\Applicant;
+use App\User;
+use App\JobApplicant;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class AdminDashboardTest extends TestCase
@@ -14,12 +14,12 @@ class AdminDashboardTest extends TestCase
     public function test_admin_can_access_dashboard_and_see_total_applicant()
     {
         // buat user admin
-        $admin = User::factory()->create([
+        $admin = factory(User::class)->create([
             'roles_id' => 1 // sesuaikan ID role admin kamu
         ]);
 
         // buat data pelamar
-        Applicant::factory()->count(5)->create();
+        factory(JobApplicant::class, 5)->create();
 
         // login sebagai admin
         $response = $this->actingAs($admin)

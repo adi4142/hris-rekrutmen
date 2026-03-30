@@ -25,32 +25,52 @@ class HrdDashboardController extends Controller
     {
         // Ambil user yang sedang login
         $user = auth()->user();
+        $isSuperAdmin = $user && $user->isSuperAdmin();
 
-        // Query Eloquent untuk statistik HRD
+        // Query Base untuk JobVacancie yang diassign ke HR ini
+        $assignedVacanciesQuery = JobVacancie::query();
+        if (!$isSuperAdmin) {
+            $assignedVacanciesQuery->whereHas('hrs', function($q) use ($user) {
+                $q->where('job_vacancy_hr.user_id', $user->user_id);
+            });
+        }
         
-        // Total pelamar yang sedang diproses (status pending)
-        $totalInProcess = JobApplication::where('status', 'pending')->count();
+        $assignedVacancyIds = $assignedVacanciesQuery->pluck('vacancies_id')->toArray();
+
+        // Total pelamar yang sedang diproses (status pending atau process)
+        $totalInProcess = JobApplication::whereIn('status', ['pending', 'applied', 'process'])
+            ->whereIn('vacancies_id', $assignedVacancyIds)
+            ->count();
         
         // Total pelamar yang diterima
-        $totalAccepted = JobApplication::where('status', 'accepted')->count();
+        $totalAccepted = JobApplication::whereIn('status', ['accepted', 'hired'])
+            ->whereIn('vacancies_id', $assignedVacancyIds)
+            ->count();
         
         // Total pelamar yang ditolak
-        $totalRejected = JobApplication::where('status', 'rejected')->count();
+        $totalRejected = JobApplication::where('status', 'rejected')
+            ->whereIn('vacancies_id', $assignedVacancyIds)
+            ->count();
         
-        // Total lowongan aktif
-        $totalActiveVacancies = JobVacancie::where('status', 'open')->count();
+        // Total lowongan aktif (hanya yang diassign)
+        $totalActiveVacancies = JobVacancie::where('status', 'open')
+            ->whereIn('vacancies_id', $assignedVacancyIds)
+            ->count();
         
-        // Total seluruh lowongan (aktif + tidak aktif)
-        $totalVacancies = JobVacancie::count();
+        // Total seluruh lowongan (hanya yang diassign)
+        $totalVacancies = count($assignedVacancyIds);
         
-        // Total seluruh lamaran masuk
-        $totalApplications = JobApplication::count();
+        // Total seluruh lamaran masuk (hanya yang diassign)
+        $totalApplications = JobApplication::whereIn('vacancies_id', $assignedVacancyIds)->count();
         
-        // Total pelamar terdaftar
-        $totalApplicants = JobApplicant::count();
+        // Total pelamar terdaftar (yang melamar ke lowongan HR ini)
+        $totalApplicants = JobApplication::whereIn('vacancies_id', $assignedVacancyIds)
+            ->distinct('job_applicant_id')
+            ->count();
         
-        // Data lamaran terbaru untuk ditampilkan (5 terakhir)
+        // Data lamaran terbaru untuk ditampilkan (5 terakhir dari lowongan yang diassign)
         $recentApplications = JobApplication::with(['jobApplicant', 'jobVacancie'])
+            ->whereIn('vacancies_id', $assignedVacancyIds)
             ->orderBy('created_at', 'desc')
             ->take(5)
             ->get();

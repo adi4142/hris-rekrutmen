@@ -41,6 +41,6 @@ class SelectionStatusUpdatedMail extends Mailable
     public function build()
     {
         return $this->subject('Update Status Lamaran Pekerjaan')
-            ->markdown('emails.selection_status_updated');
+            ->view('emails.selection_status_updated');
     }
 }

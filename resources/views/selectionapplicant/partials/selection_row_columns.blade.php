@@ -19,7 +19,7 @@
                             <br>
                             <small>Score: {{ $selection->score }} | Note: {{ $selection->notes }}</small>
                             <br>
-                            <small><i class="far fa-calendar-alt"></i> {{ $selection->selection_date ? \Carbon\Carbon::parse($selection->selection_date)->format('d M Y') : '-' }}</small>
+                            <small><i class="far fa-calendar-alt"></i> {{ ($selection->batchStage->batch->date ?? $selection->selection_date) ? \Carbon\Carbon::parse($selection->batchStage->batch->date ?? $selection->selection_date)->format('d M Y') : '-' }}</small>
                         </div>
                         <div>
                             @if($selection->status == 'passed')

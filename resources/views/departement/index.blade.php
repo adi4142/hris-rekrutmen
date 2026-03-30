@@ -2,9 +2,26 @@
 @section('page_title', 'Daftar Departement')
 
 @section('card_tools')
-<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modal-create">
-    <i class="fas fa-plus"></i> Tambah
-</button>
+<div class="d-flex align-items-center">
+    <form action="{{ route('departement.index') }}" method="GET" class="mr-2">
+        <div class="input-group input-group-sm" style="width: 250px;">
+            <input type="text" name="search" class="form-control" placeholder="Cari departemen..." value="{{ request('search') }}">
+            <div class="input-group-append">
+                @if(request('search'))
+                <a href="{{ route('departement.index') }}" class="btn btn-danger">
+                    <i class="fas fa-times"></i>
+                </a>
+                @endif
+                <button type="submit" class="btn btn-default">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </div>
+    </form>
+    <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#modal-create">
+        <i class="fas fa-plus mr-1"></i> Tambah
+    </button>
+</div>
 @endsection
 
 @section('content')
@@ -23,13 +40,15 @@
             <td>{{ $loop->iteration }}</td>
             <td>{{ $v->name }}</td>
             <td>{{ $v->description }}</td>
-            <td>    
-                <form action="{{ route('departement.destroy', $v->departement_id) }}" method="POST" style="display:inline;">
-                    {{ csrf_field() }}
-                    @method('DELETE')
-                    <button type="button" class="btn btn-warning" data-toggle="modal" data-target="#modal-edit-{{ $v->departement_id }}">Edit</button>
-                    <button type="submit" onclick="return confirm('Kamu serius?')" class="btn btn-danger">Hapus</button>
-                </form>
+            <td style="white-space: nowrap;">
+                <div class="d-inline-flex align-items-center" style="gap: 5px;">
+                    <button type="button" class="btn btn-sm btn-warning" data-toggle="modal" data-target="#modal-edit-{{ $v->departement_id }}"><i class="fas fa-edit"></i> Edit</button>
+                    <form action="{{ route('departement.destroy', $v->departement_id) }}" method="POST" class="m-0 p-0">
+                        {{ csrf_field() }}
+                        @method('DELETE')
+                        <button type="submit" onclick="return confirm('Kamu serius?')" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i> Hapus</button>
+                    </form>
+                </div>
             </td>
         </tr>
 
@@ -68,6 +87,12 @@
         @endforeach
     </tbody>
 </table>
+
+@if($departement->hasPages())
+<div class="mt-4">
+    {{ $departement->appends(request()->input())->links() }}
+</div>
+@endif
 
 <!-- Create Modal -->
 <div class="modal fade" id="modal-create" tabindex="-1" role="dialog" aria-hidden="true">

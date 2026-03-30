@@ -1,499 +1,669 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
   <link rel="icon" type="image/png" href="{{ asset('AdminLTE/dist/img/vneu.avif') }}" />
-  <title>{{ config('app.name', 'HRIS') }} | @yield('title', 'Admin')</title>
+  <title>{{ config('app.name', 'HRIS') }} — @yield('title', 'Dashboard')</title>
 
-  <!-- Google Font: Source Sans Pro -->
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
-  <!-- Font Awesome Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap">
   <link rel="stylesheet" href="{{ asset('AdminLTE/plugins/fontawesome-free/css/all.min.css') }}">
-  <!-- Theme style -->
   <link rel="stylesheet" href="{{ asset('AdminLTE/dist/css/adminlte.min.css') }}">
-
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+  <link rel="stylesheet" href="{{ asset('AdminLTE/plugins/toastr/toastr.min.css') }}">
 
   @stack('styles')
+
   <style>
-    /* Chatbot Widget Styles */
-    .chat-widget {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        width: 350px;
-        max-height: 500px;
-        z-index: 9999;
-        display: flex;
-        flex-direction: column;
-        box-shadow: 0 5px 25px rgba(0,0,0,0.25);
-        border-radius: 15px;
-        overflow: hidden;
-        transition: all 0.3s ease;
+    /* ═══════════════════════════════════════════════
+       DESIGN TOKENS — hitam-putih minimalis
+    ═══════════════════════════════════════════════ */
+    :root {
+      --sidebar-w:   240px;
+      --topbar-h:    56px;
+
+      /* Surface */
+      --bg-page:     #0a0a0a;
+      --bg-sidebar:  #111111;
+      --bg-surface:  #111111;
+      --bg-card:     #161616;
+      --bg-elevated: #1c1c1c;
+      --bg-hover:    rgba(255,255,255,0.04);
+
+      /* Border */
+      --border:      rgba(255,255,255,0.08);
+      --border-md:   rgba(255,255,255,0.12);
+      --border-focus:rgba(255,255,255,0.4);
+
+      /* Text */
+      --tx-primary:  #f5f5f5;
+      --tx-secondary:#a0a0a0;
+      --tx-muted:    #555555;
+
+      /* Accent — white only */
+      --accent:      #ffffff;
+      --accent-dim:  rgba(255,255,255,0.06);
+
+      /* Semantic */
+      --success:  #22c55e;
+      --warning:  #f59e0b;
+      --danger:   #ef4444;
+      --info:     #38bdf8;
+
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
     }
-    
-    .chat-widget.minimized {
-        width: 60px;
-        height: 60px;
-        border-radius: 50%;
-        overflow: hidden;
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    html, body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-page);
+      color: var(--tx-primary);
+      font-size: 13.5px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
     }
-    
-    .chat-header {
-        background: linear-gradient(135deg, #667eea 0%, #3f25e6 100%);
-        color: white;
-        padding: 12px 15px;
-        cursor: pointer;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+
+    ::-webkit-scrollbar            { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track      { background: transparent; }
+    ::-webkit-scrollbar-thumb      { background: #2a2a2a; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover{ background: #3a3a3a; }
+
+    /* ─── SIDEBAR ─────────────────────────────── */
+    .main-sidebar {
+      background: var(--bg-sidebar) !important;
+      border-right: 1px solid var(--border);
+      width: var(--sidebar-w) !important;
+      position: fixed; top: 0; bottom: 0; left: 0;
+      z-index: 1000;
+      display: flex; flex-direction: column;
+      transition: transform 0.28s cubic-bezier(.4,0,.2,1), width 0.28s;
     }
-    
-    .chat-body {
-        background: white;
-        flex-grow: 1;
-        overflow-y: auto;
-        padding: 15px;
-        height: 320px;
+
+    /* Brand */
+    .brand-link {
+      display: flex; align-items: center; gap: 11px;
+      padding: 0 18px !important;
+      height: var(--topbar-h);
+      border-bottom: 1px solid var(--border);
+      text-decoration: none !important;
+      flex-shrink: 0;
     }
-    
-    .chat-footer {
-        padding: 10px;
-        background: #f8f9fa;
-        border-top: 1px solid #e9ecef;
+
+    .brand-icon {
+      width: 30px; height: 30px;
+      background: var(--accent);
+      border-radius: 7px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 800; color: #000;
+      flex-shrink: 0; letter-spacing: -0.5px;
+      transition: opacity 0.15s;
     }
-    
-    .message {
-        margin-bottom: 12px;
-        padding: 10px 14px;
-        border-radius: 18px;
-        max-width: 85%;
-        word-wrap: break-word;
-        font-size: 14px;
-        line-height: 1.4;
+    .brand-link:hover .brand-icon { opacity: 0.85; }
+
+    .brand-text-main { font-size: 14px; font-weight: 700; color: var(--tx-primary); letter-spacing: -0.3px; }
+    .brand-text-sub  { font-size: 10.5px; color: var(--tx-muted); letter-spacing: 0.5px; }
+
+    /* User panel */
+    .sidebar-user {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
     }
-    
-    .message.user {
-        background: linear-gradient(135deg, #667eea 0%, #3f25e6 100%);
-        color: white;
-        margin-left: auto;
-        border-bottom-right-radius: 4px;
+
+    .sidebar-user-avatar {
+      width: 32px; height: 32px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-md);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700; color: var(--tx-primary);
+      flex-shrink: 0;
     }
-    
-    .message.bot {
-        background: #f1f3f4;
-        color: #333;
-        margin-right: auto;
-        border-bottom-left-radius: 4px;
+
+    .sidebar-user-name  { font-size: 12.5px; font-weight: 600; color: var(--tx-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px; }
+    .sidebar-user-role  { font-size: 10px; color: var(--tx-muted); letter-spacing: 0.5px; text-transform: uppercase; }
+
+    /* Nav */
+    .sidebar { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 10px 0 16px; }
+
+    .nav-section-label {
+      padding: 12px 18px 3px;
+      font-size: 9.5px; font-weight: 700; color: var(--tx-muted);
+      letter-spacing: 1.4px; text-transform: uppercase;
     }
-    
-    .chat-toggle-btn {
-        width: 60px;
-        height: 60px;
-        background: linear-gradient(135deg, #667eea 0%, #3f25e6 100%);
-        color: white;
-        border-radius: 50%;
-        display: none;
-        justify-content: center;
-        align-items: center;
-        cursor: pointer;
-        font-size: 24px;
-        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-        transition: transform 0.2s ease;
+
+    .nav-sidebar .nav-item { padding: 1px 8px; }
+
+    .nav-sidebar .nav-link {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 10px !important;
+      border-radius: var(--radius-sm);
+      color: var(--tx-secondary) !important;
+      font-size: 13px; font-weight: 500;
+      text-decoration: none;
+      transition: all 0.15s;
+      position: relative;
     }
-    
-    .chat-toggle-btn:hover {
-        transform: scale(1.1);
+
+    .nav-sidebar .nav-link i {
+      width: 16px; text-align: center; font-size: 12px;
+      color: var(--tx-muted); transition: color 0.15s; flex-shrink: 0;
     }
-    
-    .chat-widget.minimized .chat-header,
-    .chat-widget.minimized .chat-body,
-    .chat-widget.minimized .chat-footer {
-        display: none;
+
+    .nav-sidebar .nav-link p { margin: 0; }
+
+    .nav-sidebar .nav-link:hover { background: var(--bg-hover) !important; color: var(--tx-primary) !important; }
+    .nav-sidebar .nav-link:hover i { color: var(--tx-secondary); }
+
+    .nav-sidebar .nav-link.active {
+      background: var(--accent-dim) !important;
+      color: var(--tx-primary) !important;
     }
-    
-    .chat-widget.minimized .chat-toggle-btn {
-        display: flex;
+    .nav-sidebar .nav-link.active i { color: var(--tx-primary); }
+    .nav-sidebar .nav-link.active::before {
+      content: '';
+      position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+      width: 2px; height: 16px;
+      background: var(--accent);
+      border-radius: 0 2px 2px 0;
+      margin-left: -8px;
     }
-    
-    .typing-indicator {
-        display: flex;
-        gap: 4px;
+
+    /* Logout */
+    .sidebar-logout { padding: 8px 8px 12px; border-top: 1px solid var(--border); flex-shrink: 0; }
+
+    .btn-logout {
+      display: flex; align-items: center; gap: 9px;
+      width: 100%; padding: 8px 10px;
+      background: none; border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--tx-secondary); font-size: 13px; font-weight: 500;
+      cursor: pointer; transition: all 0.15s;
     }
-    
-    .typing-indicator span {
-        width: 8px;
-        height: 8px;
-        background: #667eea;
-        border-radius: 50%;
-        animation: bounce 1.4s infinite ease-in-out both;
+    .btn-logout:hover { background: rgba(239,68,68,.08); border-color: rgba(239,68,68,.25); color: #fca5a5; }
+    .btn-logout i { font-size: 12px; }
+
+    /* ─── TOPBAR ────────────────────────────────── */
+    .main-header {
+      position: fixed; top: 0;
+      left: var(--sidebar-w); right: 0;
+      height: var(--topbar-h);
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center;
+      padding: 0 22px; z-index: 900; gap: 14px;
     }
-    
-    .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
-    .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
-    
-    @keyframes bounce {
-        0%, 80%, 100% { transform: scale(0); }
-        40% { transform: scale(1); }
+
+    .topbar-toggle {
+      display: none; width: 34px; height: 34px;
+      align-items: center; justify-content: center;
+      background: none; border: 1px solid var(--border);
+      border-radius: var(--radius-sm); color: var(--tx-secondary);
+      cursor: pointer; font-size: 14px; flex-shrink: 0;
+      transition: all 0.15s;
     }
-    
-    /* Quick Reply Buttons */
-    .quick-replies {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 5px;
-        margin-top: 8px;
+    .topbar-toggle:hover { background: var(--bg-hover); color: var(--tx-primary); }
+
+    .topbar-breadcrumb { display: flex; align-items: center; gap: 6px; flex: 1; min-width: 0; }
+    .breadcrumb-item { font-size: 12.5px; color: var(--tx-muted); white-space: nowrap; }
+    .breadcrumb-item.active { color: var(--tx-primary); font-weight: 500; }
+    .breadcrumb-sep { color: var(--tx-muted); font-size: 11px; }
+
+    .topbar-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+
+    .topbar-avatar {
+      width: 30px; height: 30px;
+      background: var(--bg-elevated); border: 1px solid var(--border-md);
+      border-radius: 7px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; color: var(--tx-primary); cursor: pointer;
     }
-    
-    .quick-reply-btn {
-        background: #667eea;
-        color: white;
-        border: none;
-        padding: 5px 12px;
-        border-radius: 15px;
-        font-size: 12px;
-        cursor: pointer;
-        transition: background 0.2s;
+
+    /* ─── CONTENT WRAPPER ─────────────────────── */
+    .content-wrapper {
+      margin-left: var(--sidebar-w) !important;
+      margin-top: var(--topbar-h) !important;
+      background: var(--bg-page) !important;
+      min-height: calc(100vh - var(--topbar-h));
+      padding: 24px 24px 60px;
     }
-    
-    .quick-reply-btn:hover {
-        background: #5a6fd6;
+
+    /* Page header */
+    .page-header {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      margin-bottom: 20px; gap: 12px; flex-wrap: wrap;
     }
-</style>
+    .page-header-left h1 {
+      font-size: 20px; font-weight: 700; color: var(--tx-primary);
+      margin: 0; letter-spacing: -0.4px;
+    }
+    .page-header-left p { font-size: 12.5px; color: var(--tx-secondary); margin: 3px 0 0; }
+
+    /* ─── CARDS ─────────────────────────────────── */
+    .card {
+      background: var(--bg-card) !important;
+      border: 1px solid var(--border) !important;
+      border-radius: var(--radius-md) !important;
+      box-shadow: none !important;
+    }
+
+    .card-header {
+      background: transparent !important;
+      border-bottom: 1px solid var(--border) !important;
+      padding: 14px 18px !important;
+    }
+
+    .card-title {
+      font-size: 13.5px !important; font-weight: 600 !important;
+      color: var(--tx-primary) !important;
+      margin: 0 !important;
+    }
+
+    .card-body { padding: 18px !important; }
+    .card-footer { background: transparent !important; border-top: 1px solid var(--border) !important; padding: 12px 18px !important; }
+    .card-primary.card-outline { border-top: none !important; }
+
+    /* ─── TABLES ───────────────────────────────── */
+    .table { color: var(--tx-secondary) !important; margin: 0; }
+
+    .table thead th {
+      background: var(--bg-elevated) !important;
+      color: var(--tx-muted) !important;
+      font-size: 10px !important; font-weight: 700 !important;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      border: none !important; padding: 10px 14px !important;
+      white-space: nowrap;
+    }
+
+    .table td {
+      border-color: var(--border) !important;
+      padding: 11px 14px !important; vertical-align: middle;
+    }
+
+    .table tbody tr { transition: background 0.12s; }
+    .table tbody tr:hover td { background: var(--bg-hover) !important; color: var(--tx-primary); }
+    .table-striped tbody tr:nth-of-type(even) td { background: rgba(255,255,255,.015) !important; }
+    .table-hover tbody tr:hover td { background: var(--bg-hover) !important; }
+
+    /* ─── BUTTONS ──────────────────────────────── */
+    .btn {
+      font-family: 'Inter', sans-serif;
+      font-weight: 500; font-size: 13px;
+      border-radius: var(--radius-sm);
+      padding: 7px 14px;
+      transition: all 0.15s; border: none;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+
+    /* Primary = white button */
+    .btn-primary {
+      background: var(--accent) !important; color: #0a0a0a !important;
+    }
+    .btn-primary:hover { background: #e5e5e5 !important; transform: translateY(-1px); }
+    .btn-primary:focus { box-shadow: 0 0 0 3px rgba(255,255,255,.15) !important; }
+
+    .btn-success { background: var(--success) !important; color: #fff !important; }
+    .btn-success:hover { background: #16a34a !important; }
+
+    .btn-danger { background: var(--danger) !important; color: #fff !important; }
+    .btn-danger:hover { background: #dc2626 !important; }
+
+    .btn-warning { background: var(--warning) !important; color: #000 !important; }
+    .btn-warning:hover { background: #d97706 !important; }
+
+    .btn-info { background: var(--info) !important; color: #0a0a0a !important; }
+
+    .btn-secondary, .btn-default {
+      background: var(--bg-elevated) !important;
+      border: 1px solid var(--border) !important;
+      color: var(--tx-secondary) !important;
+    }
+    .btn-secondary:hover, .btn-default:hover { color: var(--tx-primary) !important; background: #252525 !important; }
+
+    .btn-dark { background: #222 !important; border: 1px solid var(--border-md) !important; color: var(--tx-primary) !important; }
+
+    .btn-outline-primary {
+      background: transparent !important;
+      border: 1px solid var(--border-md) !important;
+      color: var(--tx-primary) !important;
+    }
+    .btn-outline-primary:hover { background: var(--bg-hover) !important; border-color: var(--border-focus) !important; }
+
+    .btn-sm  { padding: 5px 11px !important; font-size: 12px !important; }
+    .btn-xs  { padding: 3px 8px  !important; font-size: 11px !important; }
+    .btn-lg  { padding: 10px 20px !important; font-size: 14px !important; }
+
+    /* ─── BADGES ───────────────────────────────── */
+    .badge {
+      font-size: 10.5px !important; font-weight: 600 !important;
+      padding: 3px 8px !important; border-radius: 4px !important;
+      letter-spacing: 0.02em;
+    }
+    .badge-success   { background: rgba(34,197,94,.12) !important;  color: #4ade80 !important; }
+    .badge-danger    { background: rgba(239,68,68,.12) !important;   color: #f87171 !important; }
+    .badge-warning   { background: rgba(245,158,11,.12) !important;  color: #fbbf24 !important; }
+    .badge-info      { background: rgba(56,189,248,.12) !important;  color: #7dd3fc !important; }
+    .badge-primary   { background: rgba(255,255,255,.08) !important; color: var(--tx-primary) !important; }
+    .badge-secondary { background: rgba(255,255,255,.06) !important; color: var(--tx-secondary) !important; }
+    .badge-dark      { background: #1c1c1c !important; color: var(--tx-secondary) !important; border: 1px solid var(--border); }
+
+    /* ─── FORMS ────────────────────────────────── */
+    .form-control, .custom-select {
+      background: var(--bg-elevated) !important;
+      border: 1px solid var(--border) !important;
+      color: var(--tx-primary) !important;
+      border-radius: var(--radius-sm);
+      font-size: 13.5px; font-family: 'Inter', sans-serif;
+      padding: 8px 12px; height: auto;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .form-control:focus, .custom-select:focus {
+      border-color: var(--border-focus) !important;
+      box-shadow: 0 0 0 3px rgba(255,255,255,.06) !important;
+      background: var(--bg-elevated) !important;
+      color: var(--tx-primary) !important;
+    }
+    .form-control::placeholder { color: var(--tx-muted) !important; }
+    .form-control.is-invalid { border-color: var(--danger) !important; }
+
+    label { color: var(--tx-secondary); font-weight: 500; font-size: 12.5px; margin-bottom: 5px; display: block; }
+
+    .input-group-text {
+      background: var(--bg-elevated) !important;
+      border-color: var(--border) !important;
+      color: var(--tx-muted) !important;
+    }
+
+    select option { background: #1c1c1c; color: var(--tx-primary); }
+
+    .custom-switch .custom-control-input:checked ~ .custom-control-label::before {
+      background-color: var(--success) !important; border-color: var(--success) !important;
+    }
+    .custom-control-label::before { background-color: var(--bg-elevated) !important; border-color: var(--border-md) !important; }
+
+    /* ─── ALERTS ───────────────────────────────── */
+    .alert { border: none; border-radius: var(--radius-sm); font-size: 13.5px; font-weight: 500; }
+    .alert-success { background: rgba(34,197,94,.1);   color: #4ade80; }
+    .alert-danger  { background: rgba(239,68,68,.1);   color: #f87171; }
+    .alert-warning { background: rgba(245,158,11,.1);  color: #fbbf24; }
+    .alert-info    { background: rgba(56,189,248,.1);  color: #7dd3fc; }
+    .alert .close  { color: var(--tx-muted) !important; opacity: 1; }
+
+    /* ─── PAGINATION ───────────────────────────── */
+    .pagination .page-link {
+      background: var(--bg-elevated); border-color: var(--border);
+      color: var(--tx-secondary); border-radius: var(--radius-sm) !important;
+      margin: 0 2px; font-size: 12.5px; padding: 5px 10px;
+    }
+    .pagination .page-item.active .page-link { background: var(--accent); border-color: var(--accent); color: #000; }
+    .pagination .page-link:hover { background: var(--bg-card); color: var(--tx-primary); }
+
+    /* ─── MODALS ───────────────────────────────── */
+    .modal-content { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); }
+    .modal-header { border-bottom: 1px solid var(--border); padding: 16px 20px; }
+    .modal-footer { border-top: 1px solid var(--border); padding: 12px 20px; }
+    .modal-body { padding: 20px; }
+    .modal-title { color: var(--tx-primary); font-weight: 600; font-size: 14px; }
+    .modal-backdrop.show { opacity: 0.6; }
+    .close { color: var(--tx-muted) !important; opacity: 1 !important; font-size: 20px; }
+    .close:hover { color: var(--tx-primary) !important; }
+
+    /* ─── DROPDOWNS ────────────────────────────── */
+    .dropdown-menu { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 6px; }
+    .dropdown-item { color: var(--tx-secondary); border-radius: var(--radius-sm); font-size: 13px; padding: 8px 12px; }
+    .dropdown-item:hover { background: var(--bg-hover); color: var(--tx-primary); }
+
+    /* ─── TABS ──────────────────────────────────── */
+    .nav-tabs { border-bottom: 1px solid var(--border); }
+    .nav-tabs .nav-link { color: var(--tx-secondary); border: none; border-radius: var(--radius-sm) var(--radius-sm) 0 0; font-size: 13px; padding: 8px 16px; }
+    .nav-tabs .nav-link:hover { background: var(--bg-hover); color: var(--tx-primary); }
+    .nav-tabs .nav-link.active { background: var(--bg-card); color: var(--tx-primary); border-bottom: 2px solid var(--accent); font-weight: 600; }
+
+    /* ─── MISC ──────────────────────────────────── */
+    .main-footer { display: none; }
+    .content-header { display: none; }
+    .elevation-4 { box-shadow: none !important; }
+    .wrapper { background: transparent; }
+    .text-muted { color: var(--tx-muted) !important; }
+    hr { border-color: var(--border); }
+    .border-bottom { border-bottom-color: var(--border) !important; }
+    .bg-white { background: var(--bg-card) !important; }
+    .bg-light { background: var(--bg-elevated) !important; }
+    .shadow-sm { box-shadow: none !important; }
+
+    .toast { border-radius: var(--radius-sm) !important; }
+
+    /* ─── RESPONSIVE ────────────────────────────── */
+    @media (max-width: 768px) {
+      :root { --sidebar-w: 0px; }
+      .main-sidebar { transform: translateX(-240px); width: 240px !important; }
+      .main-sidebar.open { transform: translateX(0); box-shadow: 24px 0 60px rgba(0,0,0,.6); }
+      .topbar-toggle { display: flex !important; }
+      .content-wrapper { margin-left: 0 !important; padding: 16px 14px 60px; }
+      .main-header { left: 0; padding: 0 14px; }
+      .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.65); z-index: 999; }
+      .sidebar-overlay.show { display: block; }
+    }
+
+    @media (min-width: 769px) {
+      .topbar-toggle { display: none !important; }
+      .sidebar-overlay { display: none !important; }
+
+      body.sidebar-collapsed .main-sidebar { width: 52px !important; }
+      body.sidebar-collapsed .brand-text-main,
+      body.sidebar-collapsed .brand-text-sub,
+      body.sidebar-collapsed .sidebar-user-name,
+      body.sidebar-collapsed .sidebar-user-role,
+      body.sidebar-collapsed .nav-sidebar .nav-link p,
+      body.sidebar-collapsed .nav-section-label,
+      body.sidebar-collapsed .btn-logout span { display: none !important; }
+      body.sidebar-collapsed .content-wrapper,
+      body.sidebar-collapsed .main-header { margin-left: 52px !important; left: 52px; }
+      body.sidebar-collapsed .nav-sidebar .nav-link { justify-content: center; padding: 9px !important; }
+      body.sidebar-collapsed .nav-sidebar .nav-link i { width: auto; font-size: 14px; margin: 0; }
+      body.sidebar-collapsed .sidebar { padding: 10px 4px; }
+      body.sidebar-collapsed .nav-item { padding: 1px 4px; }
+      body.sidebar-collapsed .brand-link { justify-content: center; padding: 0 !important; }
+      body.sidebar-collapsed .sidebar-user { justify-content: center; padding: 10px; }
+      body.sidebar-collapsed .sidebar-logout { padding: 8px 4px; }
+      body.sidebar-collapsed .btn-logout { justify-content: center; padding: 9px; }
+    }
+  </style>
 </head>
-<body class="hold-transition sidebar-mini">
-<div class="wrapper">
+<body>
 
-  <!-- Navbar -->
-  <nav class="main-header navbar navbar-expand navbar-white navbar-light">
-    <!-- Left navbar links -->
-    <ul class="navbar-nav">
-      <li class="nav-item">
-        <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
-      </li>
-      <li class="nav-item d-none d-sm-inline-block">
-        <a href="{{ url('/') }}" class="nav-link">Home</a>
-      </li>
-    </ul>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 
-    <!-- Right navbar links -->
-    <ul class="navbar-nav ml-auto">
-      <li class="nav-item dropdown">
-        <a class="nav-link" data-toggle="dropdown" href="#">
-          <i class="far fa-user"></i> {{ auth()->user()->name ?? 'Guest' }}
-        </a>
-        <div class="dropdown-menu dropdown-menu-right">
-          <form action="{{ route('logout') }}" method="POST">
-            @csrf
-            <button type="submit" class="dropdown-item">
-              <i class="fas fa-sign-out-alt mr-2"></i> Logout
-            </button>
-          </form>
-        </div>
-      </li>
-    </ul>
-  </nav>
-  <!-- /.navbar -->
+<!-- ═══ SIDEBAR ═══ -->
+<aside class="main-sidebar" id="mainSidebar">
+  @php
+    $authUser   = auth()->user();
+    $userRole   = $authUser && $authUser->role
+        ? str_replace(' ', '', strtolower($authUser->role->name)) : '';
+    $dashRoute  = $userRole === 'superadmin' ? 'superadmin.dashboard' : 'hrd.dashboard';
+    $userInit   = strtoupper(substr($authUser->name ?? 'U', 0, 1));
+  @endphp
 
-  <!-- Main Sidebar Container -->
-  <aside class="main-sidebar sidebar-dark-primary elevation-4">
-    <!-- Brand Logo -->
-    @php
-        $userRole = auth()->user()->role ? str_replace(' ', '', strtolower(auth()->user()->role->name)) : '';
-        
-        switch ($userRole) {
-            case 'superadmin':
-                $dashboardRoute = 'superadmin.dashboard';
-                break;
-            case 'admin':
-                $dashboardRoute = 'admin.dashboard';
-                break;
-            case 'hrd':
-                $dashboardRoute = 'hrd.dashboard';
-                break;
-            default:
-                $dashboardRoute = 'dashboard';
-                break;
-        }
-    @endphp
-    <a href="{{ route($dashboardRoute) }}" class="brand-link">
-      <img src="{{ asset('AdminLTE/dist/img/AdminLTELogo.png') }}" alt="AdminLTE Logo" class="brand-image img-circle elevation-3" style="opacity: .8">
-      <span class="brand-text font-weight-light">HRIS System</span>
-    </a>
+  <a href="{{ route($dashRoute) }}" class="brand-link">
+    <div class="brand-icon">VN</div>
+    <div>
+      <div class="brand-text-main">HRIS System</div>
+      <div class="brand-text-sub">Rekrutmen</div>
+    </div>
+  </a>
 
-    <!-- Sidebar -->
-    <div class="sidebar">
-      <!-- Sidebar user panel (optional) -->
-      <div class="user-panel mt-3 pb-3 mb-3 d-flex">
-        <div class="image">
-          <img src="{{ asset('AdminLTE/dist/img/user2-160x160.jpg') }}" class="img-circle elevation-2" alt="User Image">
-        </div>
-        <div class="info">
-          <a href="#" class="d-block">{{ auth()->user()->name ?? 'Guest' }}</a>
-          <small class="text-info">{{ ucfirst($userRole) }}</small>
-        </div>
-      </div>
+  <div class="sidebar-user">
+    <div class="sidebar-user-avatar">{{ $userInit }}</div>
+    <div style="min-width:0">
+      <div class="sidebar-user-name">{{ $authUser->name ?? 'Guest' }}</div>
+      <div class="sidebar-user-role">{{ $userRole }}</div>
+    </div>
+  </div>
 
-      <!-- Sidebar Menu -->
-      <nav class="mt-2">
-        <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
-          <li class="nav-item">
-            <a href="{{ route($dashboardRoute) }}" class="nav-link {{ request()->is('superadmin/dashboard') || request()->is('admin/dashboard') || request()->is('hrd/dashboard') ? 'active' : '' }}">
-              <i class="nav-icon fas fa-tachometer-alt"></i>
-              <p>Dashboard</p>
-            </a>
-          </li>
-@if($userRole == 'hrd' || $userRole == 'admin' || $userRole == 'superadmin')
-          <li class="nav-header">REKRUTMEN</li>
+  <div class="sidebar">
+    <nav>
+      <ul class="nav nav-pills nav-sidebar flex-column" style="padding:0">
+
+        <li class="nav-item">
+          <a href="{{ route($dashRoute) }}" class="nav-link {{ request()->is('*/dashboard') ? 'active' : '' }}">
+            <i class="fas fa-th-large"></i><p>Dashboard</p>
+          </a>
+        </li>
+
+        @if(in_array($userRole, ['hrd', 'superadmin']))
+          <div class="nav-section-label">Rekrutmen</div>
           <li class="nav-item">
             <a href="{{ route('jobvacancie.index') }}" class="nav-link {{ request()->is('jobvacancie*') ? 'active' : '' }}">
-              <i class="nav-icon fas fa-briefcase"></i>
-              <p>Lowongan Kerja</p>
+              <i class="fas fa-briefcase"></i><p>Lowongan Kerja</p>
             </a>
           </li>
           <li class="nav-item">
             <a href="{{ route('jobapplicant.index') }}" class="nav-link {{ request()->is('jobapplicant*') ? 'active' : '' }}">
-              <i class="nav-icon fas fa-users"></i>
-              <p>Manajemen Pendaftar</p>
+              <i class="fas fa-user-friends"></i><p>Data Pelamar</p>
             </a>
           </li>
           <li class="nav-item">
-            <a href="{{ route('jobapplication.index') }}" class="nav-link {{ request()->is('jobapplication*') ? 'active' : '' }}">
-              <i class="nav-icon fas fa-file-alt"></i>
-              <p>Lamaran Masuk</p>
+            <a href="{{ route('recruitment-batch.index') }}" class="nav-link {{ request()->is('recruitment-batch*') ? 'active' : '' }}">
+              <i class="fas fa-calendar-alt"></i><p>Batch Rekrutmen</p>
             </a>
           </li>
-@endif
+          <li class="nav-item">
+            <a href="{{ route('jobapplication.manage') }}" class="nav-link {{ request()->is('jobapplication*') ? 'active' : '' }}">
+              <i class="fas fa-tasks"></i><p>Proses Seleksi</p>
+            </a>
+          </li>
+        @endif
 
-@if($userRole == 'superadmin')
-          <li class="nav-header">CONTROL PANEL</li>
+        @if($userRole === 'superadmin')
+          <div class="nav-section-label">Control Panel</div>
           <li class="nav-item">
             <a href="{{ route('superadmin.users.index') }}" class="nav-link {{ request()->is('superadmin/users*') ? 'active' : '' }}">
-              <i class="nav-icon fas fa-users-cog"></i>
-              <p>Role & User Management</p>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="{{ route('superadmin.settings') }}" class="nav-link {{ request()->is('superadmin/settings*') ? 'active' : '' }}">
-              <i class="nav-icon fas fa-cogs"></i>
-              <p>Sistem Settings</p>
+              <i class="fas fa-users-cog"></i><p>Manajemen User</p>
             </a>
           </li>
           <li class="nav-item">
             <a href="{{ route('superadmin.logs') }}" class="nav-link {{ request()->is('superadmin/logs*') ? 'active' : '' }}">
-              <i class="nav-icon fas fa-history"></i>
-              <p>Audit Logs</p>
+              <i class="fas fa-history"></i><p>Audit Log</p>
             </a>
           </li>
-@endif
 
-@if($userRole == 'hrd' || $userRole == 'admin' || $userRole == 'superadmin')
-          <li class="nav-header">Master Data</li>
+          <div class="nav-section-label">Master Data</div>
           <li class="nav-item">
             <a href="{{ route('selection.index') }}" class="nav-link {{ request()->is('selection*') ? 'active' : '' }}">
-              <i class="nav-icon fas fa-tasks"></i>
-              <p>Proses Seleksi</p>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="{{ route('division.index') }}" class="nav-link {{ request()->is('division*') ? 'active' : '' }}">
-              <i class="nav-icon fas fa-layer-group"></i>
-              <p>Divisi</p>
+              <i class="fas fa-layer-group"></i><p>Tahap Seleksi</p>
             </a>
           </li>
           <li class="nav-item">
             <a href="{{ route('departement.index') }}" class="nav-link {{ request()->is('departement*') ? 'active' : '' }}">
-              <i class="nav-icon fas fa-layer-group"></i>
-              <p>Departemen</p>
+              <i class="fas fa-sitemap"></i><p>Departemen</p>
             </a>
           </li>
           <li class="nav-item">
             <a href="{{ route('position.index') }}" class="nav-link {{ request()->is('position*') ? 'active' : '' }}">
-              <i class="nav-icon fas fa-layer-group"></i>
-              <p>Jabatan</p>
+              <i class="fas fa-user-tag"></i><p>Jabatan</p>
             </a>
           </li>
-@endif          
-        </ul>
-      </nav>
-      <!-- /.sidebar-menu -->
-    </div>
-    <!-- /.sidebar -->
-  </aside>
+        @endif
 
-  <!-- Content Wrapper. Contains page content -->
-  <div class="content-wrapper">
-    <!-- Content Header (Page header) -->
-    <div class="content-header">
-      <div class="container-fluid">
-        <div class="row mb-2">
-          <div class="col-sm-6">
-            <h1 class="m-0"></h1>
-          </div>
-          <div class="col-sm-6">
-            <ol class="breadcrumb float-sm-right">
-              <li class="breadcrumb-item"><a href="#">Home</a></li>
-              <li class="breadcrumb-item active">@yield('page_title', 'Dashboard')</li>
-            </ol>
-          </div>
-        </div>
-      </div>
-    </div>
-    <!-- /.content-header -->
-
-    <!-- Main content -->
-    <section class="content">
-      <div class="container-fluid">
-        <div class="card card-primary card-outline">
-          <div class="card-header">
-            <h3 class="card-title">@yield('page_title')</h3>
-            <div class="card-tools">
-                @yield('card_tools')
-            </div>
-          </div>
-          <div class="card-body">
-            @yield('content')
-          </div>
-        </div>
-      </div>
-    </section>
-    <!-- /.content -->
+      </ul>
+    </nav>
   </div>
-  <!-- /.content-wrapper -->
 
-  <!-- Main Footer -->
-  <footer class="main-footer">
-    <strong>Copyright &copy; {{ date('Y') }} <a href="#">HRIS System</a>.</strong> All rights reserved.
-  </footer>
+  <div class="sidebar-logout">
+    <form action="{{ route('logout') }}" method="POST">
+      @csrf
+      <button type="submit" class="btn-logout">
+        <i class="fas fa-sign-out-alt"></i>
+        <span>Keluar</span>
+      </button>
+    </form>
+  </div>
+</aside>
+
+<!-- ═══ TOPBAR ═══ -->
+<nav class="main-header" id="mainHeader">
+  <button class="topbar-toggle" onclick="toggleSidebar()">
+    <i class="fas fa-bars"></i>
+  </button>
+  <div class="topbar-breadcrumb">
+    <span class="breadcrumb-item">HRIS</span>
+    <span class="breadcrumb-sep">/</span>
+    <span class="breadcrumb-item active">@yield('title', 'Dashboard')</span>
+  </div>
+  <div class="topbar-actions">
+    <div class="topbar-avatar" title="{{ $authUser->name ?? '' }}">{{ $userInit }}</div>
+  </div>
+</nav>
+
+<!-- ═══ CONTENT ═══ -->
+<div class="content-wrapper">
+
+  @if(session('success'))
+    <div class="alert alert-success alert-dismissible fade show mb-4">
+      <i class="fas fa-check-circle mr-2" style="font-size:13px"></i>{{ session('success') }}
+      <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+    </div>
+  @endif
+  @if(session('error'))
+    <div class="alert alert-danger alert-dismissible fade show mb-4">
+      <i class="fas fa-exclamation-circle mr-2" style="font-size:13px"></i>{{ session('error') }}
+      <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+    </div>
+  @endif
+  @if($errors->any())
+    <div class="alert alert-danger alert-dismissible fade show mb-4">
+      <i class="fas fa-times-circle mr-2" style="font-size:13px"></i>
+      @foreach($errors->all() as $e)<div>{{ $e }}</div>@endforeach
+      <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+    </div>
+  @endif
+
+  <div class="page-header">
+    <div class="page-header-left">
+      <h1>@yield('page_title', 'Dashboard')</h1>
+      @hasSection('page_subtitle')<p>@yield('page_subtitle')</p>@endif
+    </div>
+    <div>@yield('page_actions')</div>
+  </div>
+
+  @yield('content')
+
 </div>
-<!-- ./wrapper -->
 
-        {{-- Chatbot Widget HTML --}}
-<div class="chat-widget minimized" id="chatWidget">
-    <div class="chat-toggle-btn" onclick="toggleChat()">
-        <i class="fas fa-comments"></i>
-    </div>
-    
-    <div class="chat-header" onclick="toggleChat()">
-        <span><i class="fas fa-robot mr-2"></i> HR Assistant</span>
-        <i class="fas fa-times"></i>
-    </div>
-    
-    <div class="chat-body" id="chatBody">
-        <div class="message bot">
-          @php
-            $user = Auth::user();
-          @endphp
-            Halo {{ $user->name }}! 👋<br><br>
-            Saya HR Assistant, siap membantu Anda.<br><br>
-            <div class="quick-replies">
-                <button class="quick-reply-btn" onclick="quickReply('status lamaran')">Status Lamaran</button>
-                <button class="quick-reply-btn" onclick="quickReply('lowongan kerja')">Lowongan</button>
-                <button class="quick-reply-btn" onclick="quickReply('cara melamar')">Cara Melamar</button>
-            </div>
-        </div>
-    </div>
-    
-    <div class="chat-footer">
-        <div class="input-group">
-            <input type="text" id="chatInput" class="form-control" placeholder="Ketik pertanyaan..." onkeypress="handleKeyPress(event)">
-            <div class="input-group-append">
-                <button class="btn btn-primary" onclick="sendChatMessage()">
-                    <i class="fas fa-paper-plane"></i>
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
+<!-- SCRIPTS -->
+<script src="{{ asset('AdminLTE/plugins/jquery/jquery.min.js') }}"></script>
+<script src="{{ asset('AdminLTE/plugins/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+<script src="{{ asset('AdminLTE/dist/js/adminlte.min.js') }}"></script>
+<script src="{{ asset('AdminLTE/plugins/toastr/toastr.min.js') }}"></script>
 
 <script>
-    // Toggle chatbot visibility
-    function toggleChat() {
-        const widget = document.getElementById('chatWidget');
-        widget.classList.toggle('minimized');
-        if (!widget.classList.contains('minimized')) {
-            document.getElementById('chatInput').focus();
-        }
+  function toggleSidebar() {
+    if (window.innerWidth <= 768) {
+      document.getElementById('mainSidebar').classList.toggle('open');
+      document.getElementById('sidebarOverlay').classList.toggle('show');
+    } else {
+      document.body.classList.toggle('sidebar-collapsed');
+      localStorage.setItem('sidebarCollapsed', document.body.classList.contains('sidebar-collapsed'));
     }
+  }
+  function closeSidebar() {
+    document.getElementById('mainSidebar').classList.remove('open');
+    document.getElementById('sidebarOverlay').classList.remove('show');
+  }
+  if (window.innerWidth > 768 && localStorage.getItem('sidebarCollapsed') === 'true') {
+    document.body.classList.add('sidebar-collapsed');
+  }
 
-    // Handle Enter key press
-    function handleKeyPress(e) {
-        if (e.key === 'Enter') {
-            sendChatMessage();
-        }
-    }
-
-    // Quick reply button
-    function quickReply(message) {
-        document.getElementById('chatInput').value = message;
-        sendChatMessage();
-    }
-
-    // Send message to chatbot
-    async function sendChatMessage() {
-        const input = document.getElementById('chatInput');
-        const message = input.value.trim();
-        if (!message) return;
-
-        // Append user message
-        appendChatMessage('user', message);
-        input.value = '';
-
-        // Show typing indicator
-        const typingId = 'typing-' + Date.now();
-        appendChatMessage('bot', '<div class="typing-indicator"><span></span><span></span><span></span></div>', typingId);
-
-        try {
-            const response = await fetch('{{ route("hrd.chat") }}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                },
-                body: JSON.stringify({ message: message })
-            });
-
-            const data = await response.json();
-            
-            // Replace typing indicator with actual response
-            const typingEl = document.getElementById(typingId);
-            if (typingEl) {
-                typingEl.innerHTML = data.reply;
-            }
-        } catch (error) {
-            const typingEl = document.getElementById(typingId);
-            if (typingEl) {
-                typingEl.innerHTML = 'Maaf, terjadi kesalahan. Silakan coba lagi nanti.';
-            }
-        }
-    }
-
-    // Append message to chat body
-    function appendChatMessage(role, text, id = null) {
-        const chatBody = document.getElementById('chatBody');
-        const div = document.createElement('div');
-        div.className = 'message ' + role;
-        if (id) div.id = id;
-        div.innerHTML = text;
-        chatBody.appendChild(div);
-        chatBody.scrollTop = chatBody.scrollHeight;
-    }
+  toastr.options = { positionClass:'toast-bottom-right', timeOut:4000, progressBar:true, closeButton:true };
+  @if(session('success')) toastr.success('{{ addslashes(session("success")) }}'); @endif
+  @if(session('error'))   toastr.error('{{ addslashes(session("error")) }}');   @endif
 </script>
-
-<!-- Chatbot Toggle Button (Visible when minimized) -->
-<div class="chat-toggle-btn" id="chatToggleBtnMinimized">
-    <i class="fas fa-comments"></i>
-</div>
-
-<!-- REQUIRED SCRIPTS -->
-<!-- jQuery -->
-<script src="{{ asset('AdminLTE/plugins/jquery/jquery.min.js') }}"></script>
-<!-- Bootstrap 4 -->
-<script src="{{ asset('AdminLTE/plugins/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
-<!-- AdminLTE App -->
-<script src="{{ asset('AdminLTE/dist/js/adminlte.min.js') }}"></script>
 
 @stack('scripts')
 </body>

@@ -40,16 +40,30 @@ class SelectionController extends Controller
         $request->validate([
             'name' => 'required',
             'description' => 'nullable',
+            'aspects' => 'nullable|array',
+            'aspects.*.name' => 'required_with:aspects|string',
+            'aspects.*.description' => 'nullable|string',
         ]);
 
-        Selection::create([
+        $selection = Selection::create([
             'name' => $request->name,
             'description' => $request->description,
         ]);
 
+        if ($request->has('aspects') && is_array($request->aspects)) {
+            foreach ($request->aspects as $aspect) {
+                if (!empty($aspect['name'])) {
+                    $selection->aspects()->create([
+                        'name' => $aspect['name'],
+                        'description' => $aspect['description'] ?? null,
+                    ]);
+                }
+            }
+        }
+
         ActivityLog::log('Menambah jenis seleksi baru: ' . $request->name, 'Master Data');
 
-        return redirect()->route('selection.index');
+        return redirect()->route('selection.index')->with('success', 'Seleksi dan aspek penilaian berhasil ditambahkan');
     }
 
     /**
@@ -87,6 +101,9 @@ class SelectionController extends Controller
         $request->validate([
             'name' => 'required',
             'description' => 'nullable',
+            'aspects' => 'nullable|array',
+            'aspects.*.name' => 'required_with:aspects|string',
+            'aspects.*.description' => 'nullable|string',
         ]);
 
         $updateselection = Selection::findOrFail($id);
@@ -95,9 +112,23 @@ class SelectionController extends Controller
             'description' => $request->description,
         ]);
 
+        // Hapus aspek yang lama (opsi sederhana)
+        $updateselection->aspects()->delete();
+
+        if ($request->has('aspects') && is_array($request->aspects)) {
+            foreach ($request->aspects as $aspect) {
+                if (!empty($aspect['name'])) {
+                    $updateselection->aspects()->create([
+                        'name' => $aspect['name'],
+                        'description' => $aspect['description'] ?? null,
+                    ]);
+                }
+            }
+        }
+
         ActivityLog::log('Memperbarui jenis seleksi: ' . $updateselection->name, 'Master Data');
 
-        return redirect()->route('selection.index');
+        return redirect()->route('selection.index')->with('success', 'Seleksi dan aspek penilaian berhasil diperbarui');
     }
 
     /**

@@ -13,7 +13,6 @@ class ActivityLog extends Model
         'activity',
         'module',
         'details',
-        'ip_address'
     ];
 
     public function user()
@@ -28,7 +27,6 @@ class ActivityLog extends Model
             'activity' => $activity,
             'module' => $module,
             'details' => $details,
-            'ip_address' => request()->ip()
         ]);
     }
 }

@@ -13,9 +13,16 @@ class DepartementController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        $departement = Departement::all();
+        $query = Departement::query();
+
+        if ($request->search) {
+            $query->where('name', 'like', '%' . $request->search . '%')
+                  ->orWhere('description', 'like', '%' . $request->search . '%');
+        }
+
+        $departement = $query->paginate(20);
         return view('departement.index', compact('departement'));
     }
 

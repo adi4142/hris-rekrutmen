@@ -168,7 +168,7 @@
                 <div class="job-meta">
                     <span><i class="fas fa-building"></i> {{ $vacancy->departement->name ?? 'Semua Departemen' }}</span>
                     <span><i class="fas fa-calendar-alt"></i> Batas: {{ \Carbon\Carbon::parse($vacancy->expired_at)->format('d M Y') }}</span>
-                    <span><i class="fas fa-clock"></i> {{ $vacancy->created_at->diffForHumans() }}</span>
+                    <span><i class="fas fa-clock"></i> {{ $vacancy->updated_at->diffForHumans() }}</span>
                 </div>
             </header>
 
@@ -182,9 +182,9 @@
             @endif
 
             @php
-                $requirements = json_decode($vacancy->requirements, true);
+                $requirements = $vacancy->requirements;
                 if (!is_array($requirements)) {
-                    $requirements = $vacancy->requirements ? [$vacancy->requirements] : [];
+                    $requirements = $requirements ? [$requirements] : [];
                 }
                 $requirements = array_filter($requirements);
             @endphp
@@ -201,7 +201,7 @@
             @endif
 
             @php
-                $documents = json_decode($vacancy->required_documents, true) ?: [];
+                $documents = $vacancy->required_documents ?: [];
             @endphp
 
             @if(count($documents) > 0)
@@ -215,9 +215,23 @@
             </div>
             @endif
 
-            <a href="{{ route('jobapplicant.create', ['vacancies_id' => $vacancy->vacancies_id]) }}" class="btn-apply">
-                Lamar Pekerjaan Ini Sekarang
-            </a>
+            {{-- Jadwal Seleksi akan ditampilkan di Dashboard Pelamar setelah lolos screening berkas --}}
+
+
+            @php
+                $isExpired = \Carbon\Carbon::parse($vacancy->expired_at)->isPast();
+            @endphp
+
+            @if($isExpired)
+                <div style="background: #fef2f2; border: 1px solid #fee2e2; color: #991b1b; padding: 20px; border-radius: 12px; text-align: center; margin-top: 40px; font-weight: 600;">
+                    <i class="fas fa-exclamation-circle mr-2"></i> Pendaftaran Lowongan Ini Sudah Ditutup
+                    <p style="font-size: 0.9rem; font-weight: 400; margin-top: 4px; color: #b91c1c;">Batas pendaftaran adalah {{ \Carbon\Carbon::parse($vacancy->expired_at)->format('d F Y') }}</p>
+                </div>
+            @else
+                <a href="{{ route('jobapplicant.create', ['vacancies_id' => $vacancy->vacancies_id]) }}" class="btn-apply">
+                    Lamar Pekerjaan Ini Sekarang
+                </a>
+            @endif
         </div>
     </div>
 </body>

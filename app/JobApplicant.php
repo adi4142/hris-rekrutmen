@@ -3,11 +3,14 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use App\JobApplication;
 use App\SelectionApplicant;
 
 class JobApplicant extends Model
 {
+    use SoftDeletes;
+    
     protected $table = 'job_applicants';
     protected $primaryKey = 'job_applicant_id';
     protected $fillable = [

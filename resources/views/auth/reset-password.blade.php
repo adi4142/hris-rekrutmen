@@ -4,7 +4,7 @@
 
 @section('title', 'Reset Password')
 
-@section('hide')
+@section('back_url', 'login')
 
 @section('content')
 <div class="login-box">

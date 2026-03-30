@@ -20,6 +20,7 @@
                                 @endforeach
                             </select>
                         </div>
+
                         <div class="col-md-6 form-group">
                             <label for="position_id">Position</label>
                             <select name="position_id" id="position_id" class="form-control" required>
@@ -35,18 +36,90 @@
                         </div>
 
                         <div class="col-md-6 form-group">
-    <label>Tanggal Kadaluarsa</label>
-    <input type="date" name="expired_at" class="form-control" required>
-</div>
+                            <label>Tanggal Kadaluarsa</label>
+                            <input type="date" name="expired_at" min="{{ date('Y-m-d') }}" class="form-control" required>
+                        </div>
+
+                        <div class="col-md-6 form-group">
+                            <label for="job_type">Tipe Pekerjaan</label>
+                            <select name="job_type" id="job_type" class="form-control" required>
+                                <option value="full time">Full Time</option>
+                                <option value="part time">Part Time</option>
+                                <option value="contract">Contract</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6 form-group">
+                            <label for="quota">Quota Pelamar Diterima</label>
+                            <input type="number" name="quota" id="quota" class="form-control" value="1" min="1" required>
+                            <small class="text-muted">Lowongan akan otomatis tutup jika kuota terpenuhi.</small>
+                        </div>
+
+                        <div class="col-md-6 form-group">
+                            <label for="salary_type">Tipe Gaji</label>
+                            <select name="salary_type" id="salary_type" class="form-control" required>
+                                <option value="daily">Daily</option>
+                                <option value="weekly">Weekly</option>
+                                <option value="monthly">Monthly</option>
+                                <option value="negotiate">Negotiate</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6 form-group" id="nominal_gaji_container">
+                            <label for="salary_nominal">Nominal Gaji</label>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">Rp</span>
+                                </div>
+                                <input type="text" name="salary_nominal" id="salary_nominal" class="form-control rupiah" placeholder="Masukkan nominal gaji">
+                            </div>
+                        </div>
+
+                        <script>
+                            function formatRupiah(angka, prefix) {
+                                var number_string = angka.replace(/[^,\d]/g, '').toString(),
+                                    split = number_string.split(','),
+                                    sisa = split[0].length % 3,
+                                    rupiah = split[0].substr(0, sisa),
+                                    ribuan = split[0].substr(sisa).match(/\d{3}/gi);
+
+                                if (ribuan) {
+                                    separator = sisa ? '.' : '';
+                                    rupiah += separator + ribuan.join('.');
+                                }
+
+                                rupiah = split[1] != undefined ? rupiah + ',' + split[1] : rupiah;
+                                return prefix == undefined ? rupiah : (rupiah ? 'Rp ' + rupiah : '');
+                            }
+
+                            document.getElementById('salary_type').addEventListener('change', function() {
+                                const nominalContainer = document.getElementById('nominal_gaji_container');
+                                const nominalInput = document.getElementById('salary_nominal');
+                                if (this.value === 'negotiate') {
+                                    nominalContainer.style.display = 'none';
+                                    nominalInput.value = '';
+                                    nominalInput.required = false;
+                                } else {
+                                    nominalContainer.style.display = 'block';
+                                    nominalInput.required = true;
+                                }
+                            });
+
+                            const salaryInput = document.getElementById('salary_nominal');
+                            salaryInput.addEventListener('keyup', function(e) {
+                                this.value = formatRupiah(this.value);
+                            });
+
+                            salaryInput.closest('form').addEventListener('submit', function() {
+                                const val = salaryInput.value.replace(/\./g, '');
+                                salaryInput.value = val;
+                            });
+                        </script>
 
                         <div class="col-md-12 form-group">
                             <label>Dokumen Yang Diperlukan</label>
                             <div class="row">
                                 <div class="col-md-3">
-                                    <div class="custom-control custom-checkbox">
-                                        <input class="custom-control-input" type="checkbox" id="doc_cv" name="required_documents[]" value="CV">
-                                        <label for="doc_cv" class="custom-control-label">CV</label>
-                                    </div>
                                     <div class="custom-control custom-checkbox">
                                         <input class="custom-control-input" type="checkbox" id="doc_ktp" name="required_documents[]" value="KTP">
                                         <label for="doc_ktp" class="custom-control-label">KTP</label>
@@ -84,6 +157,27 @@
                                 </div>
                             </div>
                         </div>
+
+                        <div class="col-md-12 form-group">
+                            <label class="d-flex align-items-center">
+                                Assign HR (Penanggung Jawab)
+                                <button type="button" class="btn btn-success btn-sm ml-2 add-hr"><i class="fas fa-plus"></i> Tambah HR</button>
+                            </label>
+                            <div class="hr-container">
+                                <div class="input-group mb-2 hr-item">
+                                    <select name="hr_ids[]" class="form-control">
+                                        <option value="">Pilih HR...</option>
+                                        @foreach($hrUsers as $hr)
+                                            <option value="{{ $hr->user_id }}">{{ $hr->name }}</option>
+                                        @endforeach
+                                    </select>
+                                    <div class="input-group-append">
+                                        <button type="button" class="btn btn-danger remove-hr"><i class="fas fa-minus"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                            <small class="text-muted">HR yang dipilih dapat melihat dan mengelola kandidat untuk lowongan ini.</small>
+                        </div>
                         <div class="col-md-12 form-group">
                             <label for="requirements" class="d-flex align-items-center">
                                 Requirements 
@@ -98,6 +192,8 @@
                                 </div>
                             </div>
                         </div>
+
+
                     </div>
                 </div>
                 <div class="modal-footer">

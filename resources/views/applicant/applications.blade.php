@@ -54,9 +54,9 @@
                             <td>{{ $application->jobVacancie->departement->name ?? '-' }}</td>
                             <td>{{ $application->created_at->format('d M Y H:i') }}</td>
                             <td>
-                                @if($application->status == 'pending')
+                                @if($application->status == 'pending' || $application->status == 'applied')
                                     <span class="badge badge-warning">
-                                        <i class="fas fa-clock"></i> Pending
+                                        <i class="fas fa-clock"></i> Review Berkas
                                     </span>
                                 @elseif($application->status == 'accepted')
                                     <span class="badge badge-success">

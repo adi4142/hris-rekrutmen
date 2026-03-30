@@ -25,6 +25,7 @@ class Kernel extends ConsoleKernel
 protected function schedule(Schedule $schedule)
 {
     $schedule->command('jobs:check-expired')->everyMinute();
+    $schedule->command('applicants:delete-rejected')->hourly();
 }
 
     /**

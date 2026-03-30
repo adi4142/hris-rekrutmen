@@ -66,7 +66,6 @@ class SelectionApplicantController extends Controller
             'score' => $request->score ?? 0,
             'notes' => $request->notes ?? '-',
             'status' => 'unprocess',
-            'selection_date' => $request->selection_date,
         ]);
 
         // Kirim notifikasi email ke pelamar
@@ -126,7 +125,6 @@ class SelectionApplicantController extends Controller
             'score' => $request->score ?? $selectionApplicant->score,
             'notes' => $request->notes ?? $selectionApplicant->notes,
             'status' => $request->status ?? $selectionApplicant->status,
-            'selection_date' => $request->selection_date ?? $selectionApplicant->selection_date,
         ]);
 
         // Kirim notifikasi email ke pelamar
@@ -151,18 +149,24 @@ class SelectionApplicantController extends Controller
     private function sendNotificationEmail($selectionApplicant)
     {
         try {
+            // Pastikan relasi diload
+            $selectionApplicant->load(['jobapplication.jobApplicant', 'batchStage.batch']);
+            
             $application = $selectionApplicant->jobapplication;
             $applicant = $application->jobApplicant;
             $user = $applicant->user ?? null;
             $email = $user ? $user->email : $applicant->email;
 
             if ($email) {
+                // Ambil tanggal dari batch jika ada
+                $selectionDate = $selectionApplicant->batchStage->batch->date ?? $selectionApplicant->selection_date ?? null;
+                
                 \Illuminate\Support\Facades\Mail::to($email)->send(new \App\Mail\SelectionStatusUpdatedMail(
                     $applicant->name,
                     $application->jobVacancie->title,
                     $selectionApplicant->selection->name,
                     $selectionApplicant->status,
-                    $selectionApplicant->selection_date,
+                    $selectionDate,
                     $selectionApplicant->notes
                 ));
             }

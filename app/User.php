@@ -18,12 +18,13 @@ class User extends Authenticatable
         'email', 
         'password',
         'roles_id',
-        'status',
         'is_role_verified',
         'email_verification_code'
     ];
     protected $hidden = [
         'password',
+        'remember_token',
+        'email_verification_code',
     ];
 
     public function applicant()
@@ -44,4 +45,16 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    public function assignedVacancies()
+    {
+        return $this->belongsToMany(JobVacancie::class, 'job_vacancy_hr', 'user_id', 'vacancies_id');
+    }
+
+    public function isSuperAdmin()
+    {
+        if (!$this->role) return false;
+        $name = str_replace(' ', '', strtolower($this->role->name));
+        return strpos($name, 'superadmin') !== false;
+    }
 }
